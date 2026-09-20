@@ -72,6 +72,42 @@ body {
   background-color: theme("colors.ink.soft");
 }
 
+/* The Kitchen Display uses denser, operational cards. These aliases keep its
+   original high-contrast dark board while letting every kitchen page follow
+   the selected light theme instead of retaining fixed navy surfaces. */
+html:not(.dark) .kitchen-surface [class*="bg-[#081b2d]"],
+html:not(.dark) .kitchen-surface [class*="bg-[#0b2338]"] {
+  background-color: #ffffff;
+}
+
+html:not(.dark) .kitchen-surface [class*="border-white/"] {
+  border-color: rgb(36 96 128 / 0.2);
+}
+
+html:not(.dark) .kitchen-surface [class*="divide-white/"] {
+  border-color: rgb(36 96 128 / 0.15);
+}
+
+html:not(.dark) .kitchen-surface [class*="bg-white/"] {
+  background-color: theme("colors.paper.dim");
+}
+
+html:not(.dark) .kitchen-surface [class*="text-white/"] {
+  color: rgb(8 44 70 / 0.68);
+}
+
+html:not(.dark) .kitchen-surface [class*="text-indigo-300"] {
+  color: #4f46e5;
+}
+
+html:not(.dark) .kitchen-surface [class*="text-emerald-100"] {
+  color: #166534;
+}
+
+html:not(.dark) .kitchen-surface [class*="text-amber-100"] {
+  color: #92400e;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
