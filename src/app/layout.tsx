@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { GlobalThemeToggle } from "@/components/ui/GlobalThemeToggle";
 import { PwaRegistration } from "@/components/ui/PwaRegistration";
 import { PwaInstallPrompt } from "@/components/ui/PwaInstallPrompt";
 import "./globals.css";
@@ -46,7 +45,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-paper text-ink font-sans antialiased">
         <PwaRegistration />
         <PwaInstallPrompt />
-        <GlobalThemeToggle />
         {children}
       </body>
     </html>

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 const storageKey = "restaurant-os-theme";
 
-export function ThemeToggle() {
+export function ThemeToggle({ surface = "default" }: { surface?: "default" | "sidebar" }) {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -29,7 +29,9 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className="group inline-flex h-9 items-center gap-2 border border-ink/15 px-3 text-xs font-medium text-ink transition-colors hover:border-ink/35 hover:bg-paper-dim dark:border-paper/20 dark:text-paper dark:hover:border-paper/45 dark:hover:bg-paper/10"
+      className={surface === "sidebar"
+        ? "group inline-flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-paper/15 px-3 text-xs font-medium text-paper/70 transition-colors hover:border-paper/35 hover:bg-paper/10 hover:text-paper"
+        : "group inline-flex h-9 items-center gap-2 border border-ink/15 px-3 text-xs font-medium text-ink transition-colors hover:border-ink/35 hover:bg-paper-dim dark:border-paper/20 dark:text-paper dark:hover:border-paper/45 dark:hover:bg-paper/10"}
       aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
     >
       {isDark ? (

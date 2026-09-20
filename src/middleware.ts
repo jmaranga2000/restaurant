@@ -5,7 +5,7 @@ import { verifyPlatformSessionToken, PLATFORM_SESSION_COOKIE_NAME } from "@/lib/
 const PUBLIC_PATHS = ["/", "/login", "/register", "/api/health", "/super-admin/login"];
 // Customer-facing displays are intentionally public — see section 47:
 // "independently launchable" on any TV/tablet without staff login.
-const PUBLIC_PREFIXES = ["/display/"];
+const PUBLIC_PREFIXES = ["/display/", "/api/display/"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

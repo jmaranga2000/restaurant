@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { platformLogoutAction } from "@/actions/platform.actions";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 const navigation = [
   { label: "Overview", items: [{ href: "/super-admin/dashboard", label: "Dashboard" }] },
@@ -61,7 +62,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="flex h-14 items-center border-b border-ink-line px-4"><Link href="/super-admin/dashboard" className="flex items-center gap-2 font-sans text-sm font-semibold tracking-tight"><span className="text-xl text-white" aria-hidden="true">☁</span><span>RestroHub<small className="block text-[8px] font-normal text-paper/45">Super Admin Portal</small></span></Link></div>
         <div className="border-b border-ink-line px-4 py-3"><p className="font-mono text-[9px] uppercase tracking-[0.18em] text-paper/35">Platform control centre</p><p className="mt-1 text-xs text-paper/45">Global administration</p></div>
         <nav className="flex-1 overflow-y-auto px-2 py-3">{navigation.map((group) => <div key={group.label} className="mb-3"><p className="mb-1 px-2 font-mono text-[9px] uppercase tracking-[0.16em] text-paper/30">{group.label}</p><div>{group.items.map((item, index) => <Link key={`${item.label}-${index}`} href={item.href} onClick={() => setSidebarOpen(false)} className={`block px-2 py-1.5 text-xs transition-colors ${pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/super-admin/dashboard") ? "bg-paper/10 text-paper" : "text-paper/60 hover:bg-paper/10 hover:text-paper"}`}>{item.label}</Link>)}</div></div>)}</nav>
-        <div className="border-t border-ink-line p-3"><button type="button" onClick={() => setDesktopSidebarCollapsed(true)} className="hidden w-full px-3 py-2 text-left text-xs text-paper/45 hover:bg-paper/10 hover:text-paper lg:block">← Collapse sidebar</button><form action={platformLogoutAction}><button className="w-full px-3 py-2 text-left text-xs text-paper/45 hover:bg-paper/10 hover:text-paper">Sign out</button></form></div>
+        <div className="border-t border-ink-line p-3"><div className="mb-1"><ThemeToggle surface="sidebar" /></div><button type="button" onClick={() => setDesktopSidebarCollapsed(true)} className="hidden w-full px-3 py-2 text-left text-xs text-paper/45 hover:bg-paper/10 hover:text-paper lg:block">← Collapse sidebar</button><form action={platformLogoutAction}><button className="w-full px-3 py-2 text-left text-xs text-paper/45 hover:bg-paper/10 hover:text-paper">Sign out</button></form></div>
       </aside>
 
       <div className={`transition-[padding] duration-300 ${desktopSidebarCollapsed ? "lg:pl-0" : "lg:pl-52"}`}>

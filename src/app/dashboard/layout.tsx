@@ -5,6 +5,7 @@ import { PERMISSIONS } from "@/types/permissions";
 import { BranchRepository } from "@/repositories/branch.repository";
 import { logoutAction } from "@/actions/auth.actions";
 import { BranchSwitcher } from "./BranchSwitcher";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
@@ -62,6 +63,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </Link>
         )}
 
+        <div className="px-2 pt-2"><ThemeToggle surface="sidebar" /></div>
         <form action={logoutAction} className="p-2">
           <button className="w-full text-left px-3 py-2 rounded text-sm text-paper/60 hover:bg-ink-soft hover:text-paper transition-colors">
             Sign out

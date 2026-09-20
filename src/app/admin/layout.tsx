@@ -4,6 +4,7 @@ import { loadAuthContext, requirePermissions } from "@/permissions/authorize";
 import { PERMISSIONS } from "@/types/permissions";
 import { logoutAction } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 const NAV = [
   { href: "/admin", label: "Overview", icon: "▥" },
@@ -44,6 +45,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <Link href="/dashboard" className="mx-3 border-t border-ink-line px-3 py-4 text-xs text-paper/50 transition-colors hover:text-paper">
           ← Back to branch workspace
         </Link>
+        <div className="px-3 pb-1"><ThemeToggle surface="sidebar" /></div>
         <form action={logoutAction} className="px-3 pb-3">
           <Button type="submit" variant="ghost" className="w-full justify-start px-3 text-paper/60 hover:bg-paper/10 hover:text-paper">
             Sign out

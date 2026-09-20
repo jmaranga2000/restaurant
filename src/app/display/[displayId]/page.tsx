@@ -42,6 +42,7 @@ export default async function DisplayPage({ params }: { params: { displayId: str
   });
 
   return <DisplayClient
+    displayId={params.displayId}
     branchName={branch.name}
     restaurantName={organization?.name ?? "Restaurant"}
     logoUrl={organization?.logoUrl ?? undefined}
