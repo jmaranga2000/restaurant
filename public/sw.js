@@ -1,5 +1,5 @@
-const CACHE_NAME = "restaurant-os-v1";
-const APP_SHELL = ["/", "/manifest.webmanifest", "/icons/restaurant-os.svg"];
+const CACHE_NAME = "restaurant-os-v2";
+const APP_SHELL = ["/", "/manifest.webmanifest", "/pwa-icon/192", "/pwa-icon/512"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

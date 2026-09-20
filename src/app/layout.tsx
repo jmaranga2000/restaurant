@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { GlobalThemeToggle } from "@/components/ui/GlobalThemeToggle";
 import { PwaRegistration } from "@/components/ui/PwaRegistration";
+import { PwaInstallPrompt } from "@/components/ui/PwaInstallPrompt";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,7 +22,10 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: "light dark",
-  themeColor: "#14181D",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F5FBFF" },
+    { media: "(prefers-color-scheme: dark)", color: "#082C46" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
@@ -41,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-paper text-ink font-sans antialiased">
         <PwaRegistration />
+        <PwaInstallPrompt />
         <GlobalThemeToggle />
         {children}
       </body>

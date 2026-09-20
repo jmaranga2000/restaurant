@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { connectToDatabase } from "@/lib/db";
 import { PlatformAdminModel } from "@/models/PlatformAdmin";
 import { hashPassword, verifyPassword } from "@/lib/auth";
@@ -45,6 +46,7 @@ export async function platformLoginAction(formData: FormData): Promise<ActionRes
 
 export async function platformLogoutAction(): Promise<void> {
   clearPlatformSessionCookie();
+  redirect("/super-admin/login");
 }
 
 export async function setOrganizationActiveAction(
