@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title>Restaurant OS</title>
+  <rect width="512" height="512" rx="112" fill="#14181D"/>
+  <path fill="#C1631F" d="M168 128h176v256H168z"/>
+  <path fill="#F7F5F0" d="M211 158h78c37 0 62 21 62 54 0 23-13 40-34 48 28 7 45 28 45 57 0 39-29 65-74 65h-77V158Zm45 39v46h30c13 0 22-9 22-23s-9-23-22-23h-30Zm0 84v61h35c17 0 28-12 28-30s-11-31-28-31h-35Z"/>
+</svg>

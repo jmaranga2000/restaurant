@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { connectToDatabase } from "@/lib/db";
 import { UserModel } from "@/models/User";
 import { RoleModel } from "@/models/Role";
@@ -7,7 +8,8 @@ import { OrganizationModel } from "@/models/Organization";
 import { hashPassword, verifyPassword } from "@/lib/auth";
 import { setSessionCookie, clearSessionCookie } from "@/lib/session";
 import { loginSchema, registerOrganizationSchema } from "@/validations/auth.schema";
-import { toClientError, AuthenticationError } from "@/lib/errors";
+import { toClientError, AuthenticationError, RateLimitError } from "@/lib/errors";
+import { consumeAuthRateLimit, rateLimitMessage, resetAuthRateLimit } from "@/lib/rate-limit";
 import { DEFAULT_ROLE_TEMPLATES } from "@/types/permissions";
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { message: string; code: string } };
@@ -18,6 +20,12 @@ export async function loginAction(formData: FormData): Promise<ActionResult<{ re
       email: formData.get("email"),
       password: formData.get("password"),
     });
+    const rateLimit = await consumeAuthRateLimit({
+      scope: "restaurant-login",
+      requestHeaders: headers(),
+      email: parsed.email,
+    });
+    if (!rateLimit.allowed) throw new RateLimitError(rateLimitMessage(rateLimit.retryAfterSeconds));
 
     await connectToDatabase();
     const user = await UserModel.findOne({ email: parsed.email, isActive: true }).select("+passwordHash");
@@ -25,6 +33,8 @@ export async function loginAction(formData: FormData): Promise<ActionResult<{ re
 
     const valid = await verifyPassword(parsed.password, user.passwordHash);
     if (!valid) throw new AuthenticationError("Incorrect email or password.");
+
+    await resetAuthRateLimit(rateLimit.key);
 
     user.lastLoginAt = new Date();
     await user.save();
@@ -60,6 +70,12 @@ export async function registerOrganizationAction(
       email: formData.get("email"),
       password: formData.get("password"),
     });
+    const rateLimit = await consumeAuthRateLimit({
+      scope: "organization-registration",
+      requestHeaders: headers(),
+      email: parsed.email,
+    });
+    if (!rateLimit.allowed) throw new RateLimitError(rateLimitMessage(rateLimit.retryAfterSeconds));
 
     await connectToDatabase();
 
@@ -98,6 +114,8 @@ export async function registerOrganizationAction(
       organizationId: String(org._id),
       activeBranchId: null,
     });
+
+    await resetAuthRateLimit(rateLimit.key);
 
     return { ok: true, data: { redirectTo: "/dashboard" } };
   } catch (err) {

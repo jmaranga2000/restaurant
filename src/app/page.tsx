@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { LandingNav } from "@/components/ui/LandingNav";
 
 const capabilities = [
   { number: "01", title: "Every order, in flow", description: "A single ticket moves from the counter to the kitchen and table without a handoff getting lost.", detail: "POS · Kitchen display · Customer screen" },
@@ -37,18 +37,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <header className="mx-auto flex max-w-7xl items-center justify-between bg-paper/90 px-6 py-5 backdrop-blur-sm dark:bg-ink/90 sm:px-10 lg:px-14 lg:py-7">
-        <Link href="/" className="font-display text-xl tracking-tight sm:text-2xl">
-          Restaurant <span className="text-ember">OS</span>
-        </Link>
-        <div className="flex items-center gap-3 sm:gap-5">
-          <span className="hidden font-mono text-[10px] uppercase tracking-[0.17em] text-ink/45 dark:text-paper/45 sm:inline">Operations, in sync</span>
-          <ThemeToggle />
-          <Link href="/login" className="group inline-flex items-center gap-2 text-sm font-medium text-ink transition-colors hover:text-ember dark:text-paper">
-            Sign in <ArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Link>
-        </div>
-      </header>
+      <LandingNav />
 
       <section className="relative isolate min-h-[calc(100svh-7.6rem)] overflow-hidden text-paper">
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-ink/90 via-ink/30 to-ink/10" />
@@ -136,7 +125,28 @@ export default function HomePage() {
         </div>
       </section>
 
-      
+      <section id="operations" className="border-y border-ink/10 bg-paper-dim transition-colors duration-300 dark:border-ink-line dark:bg-ink-soft">
+        <div className="mx-auto max-w-7xl px-6 py-16 sm:px-10 lg:px-14 lg:py-20">
+          <div className="flex flex-col justify-between gap-5 border-b border-ink/10 pb-10 dark:border-ink-line sm:flex-row sm:items-end">
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ember">One operating rhythm</p>
+              <h2 className="mt-3 max-w-xl font-display text-4xl leading-[0.98] tracking-tight sm:text-5xl">Less chasing. More knowing.</h2>
+            </div>
+            <p className="max-w-sm text-sm leading-6 text-ink/60 dark:text-paper/60">The work is connected from the moment an order lands to the moment a manager reviews the day.</p>
+          </div>
+
+          <div className="grid divide-y divide-ink/10 dark:divide-ink-line lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+            {capabilities.map((capability, index) => (
+              <article key={capability.number} className={`py-9 lg:px-8 lg:py-10 ${index === 0 ? "lg:pl-0" : ""} ${index === capabilities.length - 1 ? "lg:pr-0" : ""}`}>
+                <span className="font-mono text-[11px] text-ember">{capability.number}</span>
+                <h3 className="mt-10 font-display text-2xl tracking-tight">{capability.title}</h3>
+                <p className="mt-3 max-w-sm text-sm leading-6 text-ink/60 dark:text-paper/60">{capability.description}</p>
+                <p className="mt-7 font-mono text-[9px] uppercase tracking-[0.13em] text-ink/50 dark:text-paper/50">{capability.detail}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="bg-paper px-6 py-20 transition-colors duration-300 dark:bg-ink sm:px-10 lg:px-14 lg:py-28" id="portals">
         <div className="mx-auto max-w-7xl">

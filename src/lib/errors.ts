@@ -32,6 +32,12 @@ export class AuthenticationError extends AppError {
   }
 }
 
+export class RateLimitError extends AppError {
+  constructor(message = "Too many attempts. Please try again later.") {
+    super(message, { code: "RATE_LIMITED", httpStatus: 429 });
+  }
+}
+
 export class AuthorizationError extends AppError {
   constructor(message = "You don't have permission to do that.") {
     super(message, { code: "AUTHORIZATION_ERROR", httpStatus: 403 });

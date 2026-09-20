@@ -1,12 +1,14 @@
 "use server";
 
+import { headers } from "next/headers";
 import { connectToDatabase } from "@/lib/db";
 import { PlatformAdminModel } from "@/models/PlatformAdmin";
 import { hashPassword, verifyPassword } from "@/lib/auth";
 import { setPlatformSessionCookie, clearPlatformSessionCookie, requirePlatformSession } from "@/lib/platform-session";
 import { loginSchema } from "@/validations/auth.schema";
 import { PlatformService } from "@/services/platform.service";
-import { toClientError, AuthenticationError } from "@/lib/errors";
+import { toClientError, AuthenticationError, RateLimitError } from "@/lib/errors";
+import { consumeAuthRateLimit, rateLimitMessage, resetAuthRateLimit } from "@/lib/rate-limit";
 import type { ActionResult } from "@/actions/auth.actions";
 
 export async function platformLoginAction(formData: FormData): Promise<ActionResult<{ redirectTo: string }>> {
@@ -15,6 +17,12 @@ export async function platformLoginAction(formData: FormData): Promise<ActionRes
       email: formData.get("email"),
       password: formData.get("password"),
     });
+    const rateLimit = await consumeAuthRateLimit({
+      scope: "platform-login",
+      requestHeaders: headers(),
+      email: parsed.email,
+    });
+    if (!rateLimit.allowed) throw new RateLimitError(rateLimitMessage(rateLimit.retryAfterSeconds));
 
     await connectToDatabase();
     const admin = await PlatformAdminModel.findOne({ email: parsed.email, isActive: true }).select("+passwordHash");
@@ -22,6 +30,8 @@ export async function platformLoginAction(formData: FormData): Promise<ActionRes
 
     const valid = await verifyPassword(parsed.password, admin.passwordHash);
     if (!valid) throw new AuthenticationError("Incorrect email or password.");
+
+    await resetAuthRateLimit(rateLimit.key);
 
     admin.lastLoginAt = new Date();
     await admin.save();
