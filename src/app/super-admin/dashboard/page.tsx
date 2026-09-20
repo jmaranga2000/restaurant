@@ -1,50 +1,89 @@
 import Link from "next/link";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Chart } from "@/components/ui/Chart";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { PageHeading } from "@/components/ui/PageHeading";
 import { requirePlatformSession } from "@/lib/platform-session";
 import { PlatformService } from "@/services/platform.service";
 
 const revenueLine = [18, 22, 20, 28, 24, 31, 29, 38, 35, 44, 42, 53, 48, 57, 62, 59, 70, 66, 78, 74, 84, 81, 94, 100];
-const orderBars = [45, 59, 54, 68, 76, 72, 84];
-const growthLine = [18, 22, 26, 30, 39, 44, 52, 60, 67, 78, 86, 100];
 
 function money(minor: number) {
   return new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 1 }).format(minor / 100);
 }
 
-function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <section className={`rounded-xl border border-[#dfe5ef] bg-white shadow-[0_2px_8px_rgba(30,55,90,0.03)] ${className}`}>{children}</section>;
-}
-
-function Chart({ values, color = "#4d6df3", fill = true }: { values: number[]; color?: string; fill?: boolean }) {
-  const points = values.map((value, index) => `${(index / (values.length - 1)) * 100},${100 - value}`).join(" ");
-  return <div className="relative h-full w-full"><svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-full w-full"><defs><linearGradient id={`fill-${color.replace("#", "")}`} x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor={color} stopOpacity=".24" /><stop offset="1" stopColor={color} stopOpacity=".02" /></linearGradient></defs>{fill && <polygon points={`0,100 ${points} 100,100`} fill={`url(#fill-${color.replace("#", "")})`} />}<polyline points={points} fill="none" stroke={color} strokeWidth="1.5" vectorEffect="non-scaling-stroke" /></svg></div>;
-}
-
-function Kpi({ label, value, detail, change, icon }: { label: string; value: string; detail: string; change: string; icon: string }) {
-  return <Card className="p-4"><div className="flex items-start gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-500">{icon}</span><div className="min-w-0 flex-1"><p className="text-[9px] font-medium uppercase tracking-wide text-[#71809a]">{label}</p><p className="mt-2 font-display text-2xl text-[#18294d]">{value}</p><p className="mt-2 flex items-center gap-2 text-[9px]"><span className="font-semibold text-emerald-500">↑ {change}</span><span className="text-[#9ba7ba]">{detail}</span></p></div></div></Card>;
-}
-
-function HealthRow({ name, icon }: { name: string; icon: string }) {
-  return <div className="flex items-center gap-3 border-b border-[#edf0f5] py-2.5 last:border-0"><span className="text-sm">{icon}</span><span className="flex-1 text-xs text-[#54627b]">{name}</span><span className="flex items-center gap-1.5 text-[10px] text-emerald-500"><i className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Healthy</span></div>;
+function HealthRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4 border-b border-ink-line/10 py-3 last:border-0 dark:border-ink-line">
+      <span className="text-sm text-ink/70 dark:text-paper/75">{label}</span>
+      <Badge tone="success"><span aria-hidden="true">●</span>{value}</Badge>
+    </div>
+  );
 }
 
 export default async function SuperAdminDashboardPage() {
   await requirePlatformSession();
   const summary = await PlatformService.getDashboardSummary();
+  const hasOrganizations = summary.recentOrganizations.length > 0;
 
-  return <div className="min-h-[calc(100vh-3.5rem)] bg-paper px-3 py-3 text-ink dark:bg-ink dark:text-paper sm:px-5"><div className="mx-auto max-w-[1500px]">
-    <div className="mb-3 flex shrink-0 flex-col justify-between gap-2 sm:flex-row sm:items-end"><div><h1 className="font-display text-2xl">Dashboard</h1><p className="mt-0.5 text-[10px] text-indigo-500">Platform Overview</p></div><div className="flex gap-2"><button className="border border-[#dfe5ef] bg-white px-3 py-1.5 text-[10px] text-[#61708c]">▣ &nbsp; Last 30 days　⌄</button><button className="border border-[#dfe5ef] bg-white px-3 py-1.5 text-[10px] text-[#61708c]">⇩ &nbsp; Export Report</button></div></div>
-    <Card className="mb-3 flex shrink-0 items-center gap-3 p-3"><span className="text-lg">👋</span><div><p className="text-xs font-semibold">Good morning, James</p><p className="mt-0.5 text-[9px] text-[#71809a]">Here&apos;s what&apos;s happening across your restaurant platform.</p></div></Card>
-    <div className="grid shrink-0 gap-2 sm:grid-cols-2 xl:grid-cols-4"><Kpi label="Organizations" value={summary.organizations.toLocaleString()} detail="vs previous period" change="12.4%" icon="▥" /><Kpi label="Active Branches" value={summary.activeBranches.toLocaleString()} detail="vs previous period" change="8.7%" icon="⌂" /><Kpi label="Platform Orders" value={summary.orders.toLocaleString()} detail="vs previous period" change="16.2%" icon="♧" /><Kpi label="Platform Revenue" value={money(summary.revenueMinor)} detail="vs previous period" change="14.8%" icon="$" /></div>
-    <div className="mt-3 grid items-start gap-3 xl:grid-cols-[1.5fr_1fr_.82fr]">
-      <Card className="p-3"><div className="flex flex-wrap items-start justify-between gap-2"><div><div className="flex items-center gap-2"><span className="text-indigo-500">↗</span><h2 className="text-xs font-semibold">Revenue Overview</h2></div><p className="mt-2 font-display text-xl">{money(summary.revenueMinor)}</p><p className="mt-0.5 text-[9px] text-emerald-500">↑ 14.8% <span className="text-[#9ba7ba]">vs previous period</span></p></div><div className="flex border border-[#e4e9f2] text-[8px]"><button className="bg-indigo-500 px-2 py-1 text-white">Revenue</button><button className="px-2 py-1 text-[#8290a8]">Orders</button><button className="px-2 py-1 text-[#8290a8]">Plans</button></div></div><div className="mt-3 h-52 border-b border-l border-[#e8edf5] px-2 pb-0 pt-2 md:h-64"><Chart values={revenueLine} /></div><div className="mt-1 flex justify-between text-[8px] text-[#9ba7ba]"><span>Sep 1</span><span>Sep 10</span><span>Sep 20</span><span>Sep 30</span></div></Card>
-      <Card className="min-h-0 p-3"><div className="flex items-start justify-between"><div><div className="flex items-center gap-2"><span className="text-emerald-500">⌁</span><h2 className="text-xs font-semibold">Platform Health</h2></div><p className="mt-2 text-[9px] text-[#71809a]">Overall status</p><span className="mt-0.5 inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-medium text-emerald-600">● All systems operational</span></div></div><div className="mt-2"><HealthRow name="MongoDB" icon="◉" /><HealthRow name="Resend" icon="R" /><HealthRow name="Cloudinary" icon="☁" /><HealthRow name="Upstash" icon="⚡" /><HealthRow name="Payments" icon="▣" /><HealthRow name="Realtime" icon="◈" /><HealthRow name="Background Jobs" icon="◌" /></div><a href="/super-admin/organizations" className="mt-2 block text-[9px] text-indigo-500">View system health →</a></Card>
-      <Card className="min-h-0 p-3"><div className="flex items-center gap-2"><span className="text-red-500">△</span><h2 className="text-xs font-semibold">Attention Required</h2></div><div className="mt-2 space-y-2 text-[9px]"><div className="flex gap-2"><span className="text-orange-500">$</span><p><b>7 organizations</b> have overdue payments<a className="mt-0.5 block text-indigo-500">View details →</a></p></div><div className="border-t border-[#edf0f5] pt-2 flex gap-2"><span className="text-red-500">●</span><p><b>3 branches</b> offline over 24 hours<a className="mt-0.5 block text-indigo-500">View details →</a></p></div><div className="border-t border-[#edf0f5] pt-2 flex gap-2"><span className="text-red-500">×</span><p><b>2 background jobs</b> failed<a className="mt-0.5 block text-indigo-500">View details →</a></p></div><div className="border-t border-[#edf0f5] pt-2 text-emerald-500">✓ No critical security incidents</div></div></Card>
+  return (
+    <div className="min-h-[calc(100vh-3.5rem)] bg-paper p-4 text-ink dark:bg-ink dark:text-paper sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        <PageHeading
+          eyebrow="Platform control centre"
+          title="Platform overview"
+          description="A live view of commercial performance, system health, and organizations that need attention."
+          actions={<><Button variant="secondary" size="sm">Last 30 days <span aria-hidden="true">⌄</span></Button><Button size="sm">Export report <span aria-hidden="true">↓</span></Button></>}
+        />
+
+        <Card className="mt-6 overflow-hidden border-indigo-500/20 bg-gradient-to-br from-indigo-600 to-indigo-800 p-5 text-white dark:border-indigo-400/25 dark:from-[#155C88] dark:to-[#082C46] sm:p-6">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <Badge tone="info" className="bg-white/15 text-white">All systems operational</Badge>
+              <h2 className="mt-3 font-display text-2xl">The platform is running smoothly</h2>
+              <p className="mt-2 max-w-xl text-sm text-white/75">Keep an eye on revenue, organization activity, and billing signals from one place.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:min-w-64">
+              <div className="rounded-lg border border-white/15 bg-white/10 px-4 py-3"><p className="text-xs text-white/60">Active branches</p><p className="mt-1 font-display text-2xl">{summary.activeBranches}</p></div>
+              <div className="rounded-lg border border-white/15 bg-white/10 px-4 py-3"><p className="text-xs text-white/60">Orders</p><p className="mt-1 font-display text-2xl">{summary.orders.toLocaleString()}</p></div>
+            </div>
+          </div>
+        </Card>
+
+        <section className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Platform performance">
+          <MetricCard label="Organizations" value={summary.organizations.toLocaleString()} icon="▥" trend="Platform accounts" hint="Total restaurant groups" />
+          <MetricCard label="Active branches" value={summary.activeBranches.toLocaleString()} icon="⌂" hint="Operating locations" />
+          <MetricCard label="Platform orders" value={summary.orders.toLocaleString()} icon="◷" hint="Orders across the platform" />
+          <MetricCard label="Platform revenue" value={money(summary.revenueMinor)} icon="↗" trend="Revenue recorded" hint="Completed-order revenue" />
+        </section>
+
+        <section className="mt-6 grid gap-4 xl:grid-cols-5">
+          <Card className="p-5 xl:col-span-3">
+            <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600 dark:text-indigo-300">Performance</p><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Revenue overview</h2><p className="mt-2 text-sm text-ink/55 dark:text-paper/60">{money(summary.revenueMinor)} in completed revenue.</p></div><Badge tone="success">↑ 14.8%</Badge></div>
+            <div className="mt-6 h-64 text-ink dark:text-paper"><Chart values={revenueLine} label="Platform revenue trend for the last 30 days" /></div>
+            <div className="mt-3 flex justify-between text-xs text-ink/45 dark:text-paper/45"><span>Sep 1</span><span>Sep 10</span><span>Sep 20</span><span>Today</span></div>
+          </Card>
+          <Card className="p-5 xl:col-span-2">
+            <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600 dark:text-indigo-300">Reliability</p><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Platform health</h2></div><Badge tone="success">Healthy</Badge></div>
+            <div className="mt-4"><HealthRow label="Database" value="Healthy" /><HealthRow label="Email delivery" value="Healthy" /><HealthRow label="Media storage" value="Healthy" /><HealthRow label="Background jobs" value="Healthy" /></div>
+            <Button href="/super-admin/organizations" variant="ghost" size="sm" className="mt-4 px-0">View system details <span aria-hidden="true">→</span></Button>
+          </Card>
+        </section>
+
+        <section className="mt-4 grid gap-4 lg:grid-cols-3">
+          <Card className="p-5"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600 dark:text-indigo-300">Billing</p><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Payment follow-up</h2><p className="mt-4 text-3xl font-display text-ink dark:text-paper">7</p><p className="mt-1 text-sm text-ink/55 dark:text-paper/60">Organizations have overdue payments.</p><Button href="/super-admin/subscriptions" variant="ghost" size="sm" className="mt-4 px-0">Review billing <span aria-hidden="true">→</span></Button></Card>
+          <Card className="p-5"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600 dark:text-indigo-300">Operations</p><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Branch availability</h2><p className="mt-4 text-3xl font-display text-ink dark:text-paper">3</p><p className="mt-1 text-sm text-ink/55 dark:text-paper/60">Branches have been offline for over 24 hours.</p><Button href="/super-admin/branches" variant="ghost" size="sm" className="mt-4 px-0">Inspect branches <span aria-hidden="true">→</span></Button></Card>
+          <Card className="p-5"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600 dark:text-indigo-300">Automations</p><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Background jobs</h2><p className="mt-4 text-3xl font-display text-ink dark:text-paper">2</p><p className="mt-1 text-sm text-ink/55 dark:text-paper/60">Jobs need a retry or review.</p><Button href="/super-admin/dashboard" variant="ghost" size="sm" className="mt-4 px-0">Review jobs <span aria-hidden="true">→</span></Button></Card>
+        </section>
+
+        <Card className="mt-4 overflow-hidden">
+          <div className="flex flex-col gap-3 border-b border-ink-line/15 p-5 dark:border-ink-line sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600 dark:text-indigo-300">Activity</p><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Recent organizations</h2></div><Button href="/super-admin/organizations" variant="secondary" size="sm">View all organizations</Button></div>
+          {hasOrganizations ? <div className="divide-y divide-ink-line/10 dark:divide-ink-line">{summary.recentOrganizations.slice(0, 5).map((organization, index) => <Link key={organization.id} href={`/super-admin/organizations/${organization.id}`} className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-paper-dim dark:hover:bg-ink-line"><span className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-sm font-semibold text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-200">{organization.name.slice(0, 2).toUpperCase()}</span><span className="min-w-0 flex-1"><b className="block truncate text-sm text-ink dark:text-paper">{organization.name}</b><span className="mt-1 block text-xs text-ink/50 dark:text-paper/55">New organization registered</span></span><Badge tone={organization.isActive ? "success" : "danger"}>{organization.isActive ? "Active" : "Suspended"}</Badge><span className="text-sm text-indigo-600 dark:text-indigo-300" aria-hidden="true">→</span></Link>)}</div> : <div className="p-5"><EmptyState icon="▥" title="No organizations yet" description="New organizations will appear here as soon as they join the platform." action={<Button href="/super-admin/organizations" variant="secondary">View organizations</Button>} /></div>}
+        </Card>
+      </div>
     </div>
-    <div className="mt-3 grid shrink-0 gap-3 lg:grid-cols-[1fr_1fr_1.15fr]">
-      <Card className="p-3"><div className="flex items-center justify-between"><h2 className="text-xs font-semibold">Order Activity</h2><span className="border border-[#e4e9f2] px-2 py-0.5 text-[8px] text-[#8290a8]">Last 7 days⌄</span></div><div className="mt-2 flex h-20 items-end gap-2 border-b border-l border-[#e8edf5] px-2">{orderBars.map((height, index) => <div key={index} className="flex-1 bg-indigo-500" style={{ height: `${height}%` }} />)}</div><div className="mt-1 flex justify-between text-[8px] text-[#9ba7ba]"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div><div className="mt-2 flex justify-between border-t border-[#edf0f5] pt-2"><div><p className="text-[8px] text-[#8290a8]">Total Orders</p><b className="text-sm">{summary.orders.toLocaleString()}</b></div><div><p className="text-[8px] text-[#8290a8]">Avg / Day</p><b className="text-sm">{Math.round(summary.orders / 7).toLocaleString()}</b></div></div></Card>
-      <Card className="p-3"><div className="flex items-center justify-between"><h2 className="text-xs font-semibold">Organization Growth</h2><span className="border border-[#e4e9f2] px-2 py-0.5 text-[8px] text-[#8290a8]">Last 6 months⌄</span></div><div className="mt-3 h-20 border-b border-l border-[#e8edf5] px-2"><Chart values={growthLine} color="#21b889" /></div><div className="mt-1 flex justify-between text-[8px] text-[#9ba7ba]"><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span></div><div className="mt-2 flex justify-between border-t border-[#edf0f5] pt-2"><div><p className="text-[8px] text-[#8290a8]">New organizations</p><b className="text-sm text-emerald-500">+{summary.organizations}</b></div><div><p className="text-[8px] text-[#8290a8]">Growth</p><b className="text-sm text-emerald-500">+12.4%</b></div></div></Card>
-      <Card className="p-3"><div className="flex items-center justify-between"><h2 className="text-xs font-semibold">Recent Platform Activity</h2><a href="/super-admin/organizations" className="text-[9px] text-indigo-500">View all →</a></div><div className="mt-1 divide-y divide-[#edf0f5]">{summary.recentOrganizations.slice(0, 4).map((organization, index) => <Link key={organization.id} href={`/super-admin/organizations/${organization.id}`} className="flex items-center gap-2 py-1.5"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-50 text-[10px] text-indigo-500">{index === 0 ? "⌂" : index === 1 ? "$" : "＋"}</span><span className="flex-1 text-[9px] text-[#54627b]"><b className="block text-[#283754]">New organization registered</b>{organization.name}</span><span className="text-[8px] text-[#9ba7ba]">{index + 1}h ago</span></Link>)}{summary.recentOrganizations.length === 0 && <p className="py-4 text-[9px] text-[#8290a8]">No recent platform activity.</p>}</div></Card>
-    </div>
-    <Card className="mt-3 shrink-0 overflow-hidden p-3"><div className="flex items-center justify-between"><h2 className="text-xs font-semibold">Top Organizations</h2><a href="/super-admin/organizations" className="text-[9px] text-indigo-500">View all →</a></div><div className="mt-2 overflow-x-auto"><table className="w-full min-w-[600px] text-left text-[9px]"><thead className="border-b border-[#edf0f5] text-[#8290a8]"><tr><th className="pb-1 font-normal">Organization</th><th className="pb-1 font-normal">Branches</th><th className="pb-1 font-normal">Orders</th><th className="pb-1 font-normal">Revenue</th><th className="pb-1 font-normal">Status</th></tr></thead><tbody>{summary.recentOrganizations.map((organization) => <tr key={organization.id} className="border-b border-[#f1f3f7] last:border-0"><td className="py-1.5 font-medium">{organization.name}</td><td className="py-1.5">—</td><td className="py-1.5">—</td><td className="py-1.5">—</td><td className="py-1.5"><span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[8px] text-emerald-600">● {organization.isActive ? "Active" : "Suspended"}</span></td></tr>)}</tbody></table></div></Card>
-  </div></div>;
+  );
 }
