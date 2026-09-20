@@ -131,7 +131,7 @@ function MenuReel({ menuGroups }: { menuGroups: { category: string; items: Displ
             </article>
           ))}
         </section>
-      ))}
+      )))}
     </div>
   );
 }
