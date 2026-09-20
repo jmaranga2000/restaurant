@@ -20,14 +20,15 @@ const platformAdminEmail = "jmaranga35@gmail.com";
 const platformAdminName = process.env.SEED_PLATFORM_ADMIN_NAME ?? "J Maranga";
 const restaurantOwnerEmail = process.env.SEED_OWNER_EMAIL ?? "owner@jmaranga-restaurant.local";
 const restaurantOwnerName = process.env.SEED_OWNER_NAME ?? "Restaurant Owner";
-const adminPassword = passwordArg ?? process.env.SEED_ADMIN_PASSWORD;
+const platformAdminPassword = passwordArg ?? process.env.SEED_ADMIN_PASSWORD;
+const restaurantOwnerPassword = "Maranga45@kam";
 const organizationSlug = process.env.SEED_ORGANIZATION_SLUG ?? "j-maranga-restaurant";
 
 if (restaurantOwnerEmail.toLowerCase() === platformAdminEmail) {
   throw new Error(`SEED_OWNER_EMAIL cannot be the Super Admin email ${platformAdminEmail}.`);
 }
 
-if (!adminPassword || adminPassword.length < 8) {
+if (!platformAdminPassword || platformAdminPassword.length < 8) {
   console.error("Provide an admin password of at least 8 characters as the first argument or SEED_ADMIN_PASSWORD.");
   process.exit(1);
 }
@@ -134,11 +135,12 @@ async function upsertBy(Model, filter, update) {
 async function main() {
   await mongoose.connect(process.env.MONGODB_URI);
 
-  const passwordHash = await bcrypt.hash(adminPassword, 12);
+  const platformAdminPasswordHash = await bcrypt.hash(platformAdminPassword, 12);
+  const restaurantOwnerPasswordHash = await bcrypt.hash(restaurantOwnerPassword, 12);
   await upsertBy(PlatformAdmin, { email: platformAdminEmail }, {
     name: platformAdminName,
     email: platformAdminEmail,
-    passwordHash,
+    passwordHash: platformAdminPasswordHash,
     isActive: true,
   });
 
@@ -163,7 +165,7 @@ async function main() {
     organizationId: organization._id,
     name: restaurantOwnerName,
     email: restaurantOwnerEmail,
-    passwordHash,
+    passwordHash: restaurantOwnerPasswordHash,
     roleId: ownerRole._id,
     assignedBranchIds: [],
     isEmailVerified: true,

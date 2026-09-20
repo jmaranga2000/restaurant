@@ -109,16 +109,17 @@ npm install
 npm run dev
 npm run test                              # order-transition unit tests, no DB needed
 npm run create-platform-admin -- "Jane Doe" jane@yourco.com "a-strong-password"
-npm run seed-restaurant -- "a-strong-password" # seeds J Maranga Restaurant
+npm run seed-restaurant -- "super-admin-password" # seeds J Maranga Restaurant
 ```
 
 The restaurant seed creates the Super Admin account `jmaranga35@gmail.com`,
 a separate restaurant owner account (`owner@jmaranga-restaurant.local` by
 default), two Nairobi branches, default categories, five menu items with
 recipes, branch inventory, and opening-balance ledger entries. It is
-idempotent and can be run again after changing the seed data. The password is
-supplied only at runtime and is never stored in the script. Set
-`SEED_OWNER_EMAIL` if you want a different restaurant owner email.
+idempotent and can be run again after changing the seed data. The command
+argument (or `SEED_ADMIN_PASSWORD`) seeds the Super Admin password. The demo
+restaurant owner uses the fixed seeded password defined in the seed script.
+Set `SEED_OWNER_EMAIL` if you want a different restaurant owner email.
 
 Then:
 1. Visit `/register` to create your first organization + owner user (this

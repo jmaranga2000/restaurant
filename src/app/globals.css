@@ -13,20 +13,23 @@ html {
   color-scheme: light;
 }
 
-html.dark {
+html.dark,
+html.dark body {
   background: theme("colors.ink.DEFAULT");
   color-scheme: dark;
 }
 
 body {
   font-family: var(--font-body);
+  background: theme("colors.paper.DEFAULT");
+  color: theme("colors.ink.DEFAULT");
 }
 
 /* A number of operational pages use white cards and ink text directly.
    These shared rules keep those existing controls legible under the global
    dark preference without changing their light-theme styling. */
 .dark .bg-white,
-.dark .bg-paper {
+.dark .bg-paper:not(.dark\:bg-ink) {
   background-color: theme("colors.ink.soft");
 }
 
@@ -35,7 +38,7 @@ body {
 }
 
 .dark [class*="text-ink/"] {
-  color: rgb(247 245 240 / 0.65);
+  color: rgb(245 251 255 / 0.7);
 }
 
 .dark input:not([type="checkbox"]):not([type="radio"]),
@@ -43,6 +46,30 @@ body {
 .dark textarea {
   background-color: theme("colors.ink.soft");
   color: theme("colors.paper.DEFAULT");
+}
+
+/* Super Admin still uses a handful of legacy slate utility values. Keep that
+   information hierarchy in dark mode, but express it with high-contrast icy
+   text instead of unreadable grey on the sky-blue surfaces. */
+.dark .super-admin-content [class*="text-[#18294d]"],
+.dark .super-admin-content [class*="text-[#283754]"] {
+  color: theme("colors.paper.DEFAULT");
+}
+
+.dark .super-admin-content [class*="text-[#54627b]"],
+.dark .super-admin-content [class*="text-[#61708c]"],
+.dark .super-admin-content [class*="text-[#71809a]"],
+.dark .super-admin-content [class*="text-[#8290a8]"],
+.dark .super-admin-content [class*="text-[#9ba7ba]"] {
+  color: rgb(225 243 255 / 0.74);
+}
+
+.dark .super-admin-content [class*="border-[#"] {
+  border-color: theme("colors.ink.line");
+}
+
+.dark .super-admin-content [class*="hover:bg-[#"]:hover {
+  background-color: theme("colors.ink.soft");
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,8 +1,8 @@
 import type { Config } from "tailwindcss";
 
 // Design plan (see README > Design notes):
-// - Ink/surface pairing is a warm charcoal, not pure black, so it holds up under
-//   kitchen fluorescent lighting and long POS shifts.
+// - Ink/surface pairing is a dark sky blue and icy white, keeping operational
+//   screens calm and high-contrast across day and night use.
 // - "Ember" is the single brand accent, used sparingly for primary actions only.
 // - Order-lifecycle colors are semantic and used consistently everywhere a
 //   status appears (POS, KDS, customer display, dashboard) so staff build
@@ -14,13 +14,13 @@ const config: Config = {
     extend: {
       colors: {
         ink: {
-          DEFAULT: "#14181D",
-          soft: "#1C232B",
-          line: "#2B3540",
+          DEFAULT: "#082C46",
+          soft: "#0D3D60",
+          line: "#246080",
         },
         paper: {
-          DEFAULT: "#F7F5F0",
-          dim: "#EDEAE2",
+          DEFAULT: "#F5FBFF",
+          dim: "#E4F3FB",
         },
         ember: {
           DEFAULT: "#C1631F",
