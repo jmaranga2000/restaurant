@@ -60,7 +60,9 @@ export function DisplayClient({
       }
     }, 10000);
     const clock = window.setInterval(() => setNow(new Date()), 1000);
-    const promotionCarousel = window.setInterval(() => setPromotionIndex((current) => current + 1), 7000);
+    // Promotions change gently on a customer-facing screen rather than
+    // competing with guests trying to read the menu or order numbers.
+    const promotionCarousel = window.setInterval(() => setPromotionIndex((current) => current + 1), 18000);
     return () => {
       window.clearInterval(refresh); window.clearInterval(clock); window.clearInterval(promotionCarousel);
     };
@@ -90,7 +92,6 @@ export function DisplayClient({
           <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#071a2c] p-[1vw] shadow-[0_15px_40px_rgba(0,0,0,.22)]">
             <div className="flex shrink-0 items-center justify-between border-b border-white/10 pb-[.8vw]"><p className="text-[clamp(.65rem,.9vw,1rem)] font-semibold uppercase tracking-[.2em] text-[#ffd070]">Our menu</p><span className="text-[clamp(.55rem,.72vw,.78rem)] text-white/50">Freshly prepared to order</span></div>
             <div className="display-menu-window mt-[.8vw] min-h-0 flex-1 overflow-hidden"><MenuReel menuGroups={menuGroups} /></div>
-            {promotionalItem ? <div className="mt-[.8vw] flex shrink-0 items-center gap-3 rounded-xl border border-[#f3a420]/80 bg-gradient-to-r from-[#4b2700] to-[#152336] p-[.7vw]"><div className="hidden h-12 w-14 overflow-hidden rounded-lg sm:block">{promotionalItem.imageUrl ? <img src={promotionalItem.imageUrl} alt="" className="h-full w-full object-cover" /> : <span className="grid h-full place-items-center text-xl">🍴</span>}</div><div className="min-w-0 flex-1"><p className="font-semibold text-[#ffbf47]">Today’s featured pick</p><p className="truncate text-xs text-white/65">{promotionalItem.name} · {displayMoney(promotionalItem.priceMinor)}</p></div><span className="rounded-full bg-[#ffad28] px-3 py-2 text-xs font-bold text-[#07111d]">View menu →</span></div> : null}
           </section>
         </section>
 
@@ -98,7 +99,7 @@ export function DisplayClient({
       </div>
 
       <footer className="flex h-[7.5vh] min-h-14 items-center justify-between gap-4 border-t border-white/10 bg-[#071521] px-[2vw] text-[clamp(.62rem,.95vw,1rem)]"><p className="font-semibold text-[#ffba3c]">⌁ Today’s special <span className="mx-3 text-white/40">|</span><span className="font-normal text-white/85">Fresh ingredients, better taste!</span></p><div className="hidden items-center gap-2 text-white/65 md:flex"><span className="grid h-7 w-7 place-items-center border border-white/40">▦</span><span className="text-xs">Scan for digital menu</span></div><p className="font-serif text-lg italic text-white/85">Thank you! <span className="ml-1 text-[#ffad28]">♥</span></p></footer>
-      <style>{`@keyframes display-menu-roll { from { transform: translateY(0); } to { transform: translateY(-50%); } } .display-menu-reel { animation: display-menu-roll 52s linear infinite; will-change: transform; } .display-menu-window:hover .display-menu-reel { animation-play-state: paused; } @media (prefers-reduced-motion: reduce) { .display-menu-reel { animation: none; } }`}</style>
+      <style>{`@keyframes display-menu-roll { from { transform: translateY(0); } to { transform: translateY(-50%); } } .display-menu-reel { animation: display-menu-roll 76s linear infinite; will-change: transform; } .display-menu-window:hover .display-menu-reel { animation-play-state: paused; } @media (prefers-reduced-motion: reduce) { .display-menu-reel { animation: none; } }`}</style>
     </main>
   );
 }
