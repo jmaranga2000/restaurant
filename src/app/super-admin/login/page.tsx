@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { platformLoginAction } from "@/actions/platform.actions";
 import { PasswordField } from "@/components/ui/PasswordField";
 import { AuthSubmitButton } from "@/components/ui/AuthSubmitButton";
@@ -14,6 +15,9 @@ export default function SuperAdminLoginPage({ searchParams }: { searchParams?: {
   return (
     <main className="flex min-h-screen items-center justify-center bg-paper px-4 text-ink transition-colors duration-300 dark:bg-ink dark:text-paper">
       <div className="w-full max-w-sm">
+        <Link href="/" className="mb-6 inline-flex items-center gap-2 text-sm text-ink/60 transition-colors hover:text-ink dark:text-paper/60 dark:hover:text-paper">
+          <span aria-hidden="true">←</span> Back to home
+        </Link>
         <p className="text-status-cancelled text-xs uppercase tracking-wide mb-1">Platform staff only</p>
         <h1 className="mb-8 font-display text-2xl">Super Admin</h1>
         {searchParams?.error ? <p role="alert" className="mb-4 rounded border border-status-cancelled/50 bg-status-cancelled/10 px-3 py-2 text-sm">{searchParams.error}</p> : null}

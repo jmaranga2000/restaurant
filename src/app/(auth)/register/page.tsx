@@ -15,6 +15,9 @@ export default function RegisterPage({ searchParams }: { searchParams?: { error?
   return (
     <main className="flex min-h-screen items-center justify-center bg-paper px-4 text-ink transition-colors duration-300 dark:bg-ink dark:text-paper">
       <div className="w-full max-w-sm">
+        <Link href="/" className="mb-6 inline-flex items-center gap-2 text-sm text-ink/60 transition-colors hover:text-ink dark:text-paper/60 dark:hover:text-paper">
+          <span aria-hidden="true">←</span> Back to home
+        </Link>
         <h1 className="mb-1 font-display text-2xl">Set up your restaurant</h1>
         <p className="mb-8 text-sm text-ink/60 dark:text-paper/60">Creates your organization and its first owner account.</p>
         {searchParams?.error ? <p role="alert" className="mb-4 rounded border border-status-cancelled/50 bg-status-cancelled/10 px-3 py-2 text-sm">{searchParams.error}</p> : null}
