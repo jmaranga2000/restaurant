@@ -20,15 +20,24 @@ function ArrowUpRight({ className = "" }: { className?: string }) {
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen overflow-hidden bg-paper text-ink transition-colors duration-300 dark:bg-ink dark:text-paper">
-      <div className="border-b border-ink/10 bg-ink text-paper">
+    <main className="relative min-h-screen overflow-x-hidden text-ink dark:text-paper">
+      <div
+        className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center lg:bg-[center_45%]"
+        style={{ backgroundImage: `url(${heroImage})` }}
+        role="img"
+        aria-label="Fine dining dish in an elegant restaurant"
+      />
+      <div className="pointer-events-none fixed inset-0 z-[1] bg-ink/10" />
+
+      <div className="relative z-10">
+      <div className="border-b border-ink/10 bg-ink/95 text-paper backdrop-blur-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 px-6 py-2.5 text-center font-mono text-[10px] uppercase tracking-[0.16em] sm:px-10">
           <span className="inline-flex h-1.5 w-1.5 rounded-full bg-ember-light" />
           Built for the pace of service
         </div>
       </div>
 
-      <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 sm:px-10 lg:px-14 lg:py-7">
+      <header className="mx-auto flex max-w-7xl items-center justify-between bg-paper/90 px-6 py-5 backdrop-blur-sm dark:bg-ink/90 sm:px-10 lg:px-14 lg:py-7">
         <Link href="/" className="font-display text-xl tracking-tight sm:text-2xl">
           Restaurant <span className="text-ember">OS</span>
         </Link>
@@ -41,22 +50,15 @@ export default function HomePage() {
         </div>
       </header>
 
-      <section className="relative isolate mt-2 overflow-hidden bg-ink text-paper">
-        <div
-          className="absolute inset-0 -z-20 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroImage})` }}
-          role="img"
-          aria-label="Fine dining dish in an elegant restaurant"
-        />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-ink via-ink/90 to-ink/55" />
-        <div className="absolute inset-0 -z-10 bg-ink/25" />
-        <div className="mx-auto grid max-w-7xl gap-12 px-6 pb-20 pt-14 sm:px-10 lg:grid-cols-12 lg:gap-10 lg:px-14 lg:pb-28 lg:pt-20">
+      <section className="relative isolate min-h-[calc(100svh-7.6rem)] overflow-hidden text-paper">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-ink/90 via-ink/30 to-ink/10" />
+        <div className="mx-auto grid min-h-[calc(100svh-7.6rem)] max-w-7xl gap-12 px-6 pb-20 pt-14 sm:px-10 lg:grid-cols-12 lg:gap-10 lg:px-14 lg:pb-28 lg:pt-20">
         <div className="flex flex-col justify-between lg:col-span-6">
           <div>
             <p className="mb-6 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.18em] text-ember-light">
               <span className="h-px w-9 bg-ember" /> Restaurant operations platform
             </p>
-            <h1 className="max-w-2xl font-display text-5xl leading-[0.91] tracking-[-0.045em] sm:text-6xl lg:text-7xl xl:text-[5.4rem]">
+            <h1 className="max-w-2xl font-display text-5xl leading-[0.91] tracking-[-0.045em] [text-shadow:0_2px_18px_rgb(20_24_29_/_0.55)] sm:text-6xl lg:text-7xl xl:text-[5.4rem]">
               Make every shift feel <span className="italic text-ember-light">under control.</span>
             </h1>
             <p className="mt-7 max-w-xl text-base leading-7 text-paper/75 sm:text-lg sm:leading-8">
@@ -157,7 +159,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-20 sm:px-10 lg:px-14 lg:py-28" id="portals">
+      <section className="bg-paper px-6 py-20 transition-colors duration-300 dark:bg-ink sm:px-10 lg:px-14 lg:py-28" id="portals">
+        <div className="mx-auto max-w-7xl">
         <div className="grid gap-9 lg:grid-cols-[.8fr_1.2fr] lg:gap-16">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ember">Choose your workspace</p>
@@ -184,6 +187,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
+        </div>
       </section>
 
       <footer className="bg-ink text-paper">
@@ -199,6 +203,7 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+      </div>
     </main>
   );
 }
