@@ -68,32 +68,33 @@ async function saveOnboarding(formData: FormData, complete: boolean): Promise<Ac
     if (logoUrl) organization.logoUrl = logoUrl;
 
     if (complete) {
+      const completed = onboardingSchema.parse(raw);
       organization.settings = {
-        taxRatePercent: parsed.taxRatePercent,
-        serviceChargePercent: parsed.serviceChargePercent,
-        taxLabel: parsed.taxLabel || "VAT",
-        pricesIncludeTax: parsed.pricesIncludeTax ?? false,
-        serviceTypes: parsed.serviceTypes,
-        paymentMethods: parsed.paymentMethods.map((code) => ({ code, label: paymentLabels[code], enabled: true })),
+        taxRatePercent: completed.taxRatePercent,
+        serviceChargePercent: completed.serviceChargePercent,
+        taxLabel: completed.taxLabel || "VAT",
+        pricesIncludeTax: completed.pricesIncludeTax ?? false,
+        serviceTypes: completed.serviceTypes,
+        paymentMethods: completed.paymentMethods.map((code) => ({ code, label: paymentLabels[code], enabled: true })),
         kitchenStations: organization.settings?.kitchenStations?.length ? organization.settings.kitchenStations : ["Kitchen"],
       };
-      organization.receipt = { header: parsed.receiptHeader || undefined, footer: parsed.receiptFooter || undefined, prefix: parsed.receiptPrefix || undefined };
-      organization.businessRegistration = { legalName: parsed.legalName || undefined, registrationNumber: parsed.registrationNumber || undefined, taxNumber: parsed.taxNumber || undefined };
+      organization.receipt = { header: completed.receiptHeader || undefined, footer: completed.receiptFooter || undefined, prefix: completed.receiptPrefix || undefined };
+      organization.businessRegistration = { legalName: completed.legalName || undefined, registrationNumber: completed.registrationNumber || undefined, taxNumber: completed.taxNumber || undefined };
       organization.subscription ??= { plan: "TRIAL", status: "TRIAL", enabledModules: [] };
       organization.onboarding = { status: "COMPLETED", completedAt: new Date(), skippedSteps: [] };
 
-      let branch = await BranchModel.findOne({ organizationId: organization._id, code: parsed.branchCode });
-      const openingHours = Array.from({ length: 7 }, (_, dayOfWeek) => ({ dayOfWeek, opensAt: parsed.opensAt, closesAt: parsed.closesAt }));
+      let branch = await BranchModel.findOne({ organizationId: organization._id, code: completed.branchCode });
+      const openingHours = Array.from({ length: 7 }, (_, dayOfWeek) => ({ dayOfWeek, opensAt: completed.opensAt, closesAt: completed.closesAt }));
       if (branch) {
-        branch.name = parsed.branchName; branch.address = parsed.branchAddress || undefined; branch.phone = parsed.branchPhone || undefined;
-        branch.city = parsed.city || undefined; branch.country = parsed.country || undefined; branch.timezone = parsed.timezone; branch.openingHours = openingHours; branch.serviceTypes = parsed.serviceTypes;
+        branch.name = completed.branchName; branch.address = completed.branchAddress || undefined; branch.phone = completed.branchPhone || undefined;
+        branch.city = completed.city || undefined; branch.country = completed.country || undefined; branch.timezone = completed.timezone; branch.openingHours = openingHours; branch.serviceTypes = completed.serviceTypes;
         await branch.save();
       } else {
-        branch = await BranchModel.create({ organizationId: organization._id, name: parsed.branchName, code: parsed.branchCode, address: parsed.branchAddress || undefined, phone: parsed.branchPhone || undefined, city: parsed.city || undefined, country: parsed.country || undefined, timezone: parsed.timezone, openingHours, serviceTypes: parsed.serviceTypes, isActive: true, createdBy: ctx.userId });
+        branch = await BranchModel.create({ organizationId: organization._id, name: completed.branchName, code: completed.branchCode, address: completed.branchAddress || undefined, phone: completed.branchPhone || undefined, city: completed.city || undefined, country: completed.country || undefined, timezone: completed.timezone, openingHours, serviceTypes: completed.serviceTypes, isActive: true, createdBy: ctx.userId });
       }
 
-      if (parsed.tableCount > 0) {
-        await Promise.all(Array.from({ length: parsed.tableCount }, (_, index) => {
+      if (completed.tableCount > 0) {
+        await Promise.all(Array.from({ length: completed.tableCount }, (_, index) => {
           const label = `T${String(index + 1).padStart(2, "0")}`;
           return TableModel.updateOne({ organizationId: organization._id, branchId: branch!._id, label }, { $setOnInsert: { organizationId: organization._id, branchId: branch!._id, label, seats: 4, status: "AVAILABLE" } }, { upsert: true });
         }));
