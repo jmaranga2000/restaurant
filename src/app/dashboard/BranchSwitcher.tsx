@@ -9,7 +9,7 @@ interface BranchOption {
   name: string;
 }
 
-export function BranchSwitcher({ branches, activeBranchId }: { branches: BranchOption[]; activeBranchId: string | null }) {
+export function BranchSwitcher({ branches, activeBranchId, allowAll = false }: { branches: BranchOption[]; activeBranchId: string | null; allowAll?: boolean }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -22,11 +22,12 @@ export function BranchSwitcher({ branches, activeBranchId }: { branches: BranchO
 
   return (
     <select
-      value={activeBranchId ?? ""}
+      value={activeBranchId ?? (allowAll ? "__all__" : "")}
       disabled={isPending}
       onChange={(e) => onChange(e.target.value)}
       className="bg-ink-soft border border-ink-line rounded px-2 py-1 text-sm text-paper"
     >
+      {allowAll ? <option value="__all__">All branches</option> : null}
       {branches.map((b) => (
         <option key={b.id} value={b.id}>
           {b.name}

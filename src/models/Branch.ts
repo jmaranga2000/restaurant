@@ -6,6 +6,10 @@ const branchSchema = new Schema(
     name: { type: String, required: true, trim: true },
     code: { type: String, required: true, trim: true }, // short branch code, e.g. "NBO-01"
     address: { type: String, trim: true },
+    phone: { type: String, trim: true },
+    city: { type: String, trim: true },
+    country: { type: String, trim: true },
+    serviceTypes: [{ type: String, enum: ["DINE_IN", "TAKEAWAY", "DELIVERY", "PICKUP"] }],
     timezone: { type: String },
     openingHours: [
       {

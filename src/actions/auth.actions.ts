@@ -45,7 +45,9 @@ export async function loginAction(formData: FormData): Promise<ActionResult<{ re
       activeBranchId: user.assignedBranchIds[0] ? String(user.assignedBranchIds[0]) : null,
     });
 
-    return { ok: true, data: { redirectTo: "/dashboard" } };
+    const organization = await OrganizationModel.findById(user.organizationId).select("onboarding").lean();
+    const redirectTo = organization?.onboarding?.status === "IN_PROGRESS" ? "/onboarding" : "/workspace";
+    return { ok: true, data: { redirectTo } };
   } catch (err) {
     return { ok: false, error: toClientError(err) };
   }
@@ -92,7 +94,12 @@ export async function registerOrganizationAction(
     if (existingOrganization) throw new ConflictError("A restaurant with that name already exists. Try a more specific name.");
     if (existingUser) throw new ConflictError("An account already uses this email address. Sign in instead.");
 
-    const org = await OrganizationModel.create({ name: parsed.organizationName, slug });
+    const org = await OrganizationModel.create({
+      name: parsed.organizationName,
+      slug,
+      onboarding: { status: "IN_PROGRESS", skippedSteps: [] },
+      subscription: { plan: "TRIAL", status: "TRIAL", enabledModules: [] },
+    });
 
     const roleDocs = await RoleModel.insertMany(
       Object.entries(DEFAULT_ROLE_TEMPLATES).map(([slugName, permissions]) => ({
@@ -124,7 +131,7 @@ export async function registerOrganizationAction(
 
     await resetAuthRateLimit(rateLimit.key);
 
-    return { ok: true, data: { redirectTo: "/dashboard" } };
+    return { ok: true, data: { redirectTo: "/onboarding" } };
   } catch (err) {
     return { ok: false, error: toClientError(err) };
   }

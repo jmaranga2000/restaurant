@@ -44,7 +44,9 @@ const organizationSchema = new mongoose.Schema({
   slug: String,
   defaultCurrency: String,
   defaultTimezone: String,
-  settings: { taxRatePercent: Number, serviceChargePercent: Number },
+  settings: { taxRatePercent: Number, serviceChargePercent: Number, taxLabel: String, pricesIncludeTax: Boolean, serviceTypes: [String], kitchenStations: [String] },
+  subscription: { plan: String, status: String, enabledModules: [String] },
+  onboarding: { status: String, completedAt: Date, skippedSteps: [String] },
   isActive: Boolean,
 }, { timestamps: true });
 const platformAdminSchema = new mongoose.Schema({
@@ -149,7 +151,9 @@ async function main() {
     slug: organizationSlug,
     defaultCurrency: "KES",
     defaultTimezone: "Africa/Nairobi",
-    settings: { taxRatePercent: 16, serviceChargePercent: 0 },
+    settings: { taxRatePercent: 16, serviceChargePercent: 0, taxLabel: "VAT", pricesIncludeTax: false, serviceTypes: ["DINE_IN", "TAKEAWAY", "PICKUP"], kitchenStations: ["grill", "hot-line", "bar"] },
+    subscription: { plan: "TRIAL", status: "TRIAL", enabledModules: [] },
+    onboarding: { status: "COMPLETED", completedAt: new Date(), skippedSteps: [] },
     isActive: true,
   });
 

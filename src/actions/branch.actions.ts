@@ -2,10 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/session";
-import { loadAuthContext, requireBranchAccess } from "@/permissions/authorize";
+import { isOrgWideAccess, loadAuthContext, requireBranchAccess } from "@/permissions/authorize";
 import { BranchService } from "@/services/branch.service";
 import { createBranchSchema, updateBranchSchema } from "@/validations/branch.schema";
-import { toClientError } from "@/lib/errors";
+import { AuthorizationError, toClientError } from "@/lib/errors";
 import type { ActionResult } from "@/actions/auth.actions";
 
 export async function createBranchAction(formData: FormData): Promise<ActionResult<{ branchId: string }>> {
@@ -46,15 +46,20 @@ export async function switchActiveBranchAction(branchId: string): Promise<Action
   try {
     const session = await requireSession();
     const ctx = await loadAuthContext(session);
-    requireBranchAccess(ctx, branchId);
+    const selectAllBranches = branchId === "__all__";
+    if (selectAllBranches && !isOrgWideAccess(ctx)) {
+      throw new AuthorizationError("Only organization-wide roles can view all branches together.");
+    }
+    if (!selectAllBranches) requireBranchAccess(ctx, branchId);
 
     const { setSessionCookie } = await import("@/lib/session");
-    await setSessionCookie({ userId: ctx.userId, organizationId: ctx.organizationId, activeBranchId: branchId });
+    await setSessionCookie({ userId: ctx.userId, organizationId: ctx.organizationId, activeBranchId: selectAllBranches ? null : branchId });
 
     revalidatePath("/dashboard");
     revalidatePath("/pos");
     revalidatePath("/kitchen");
-    return { ok: true, data: { branchId } };
+    revalidatePath("/workspace");
+    return { ok: true, data: { branchId: selectAllBranches ? "__all__" : branchId } };
   } catch (err) {
     return { ok: false, error: toClientError(err) };
   }
