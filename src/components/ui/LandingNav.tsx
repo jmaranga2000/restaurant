@@ -35,8 +35,11 @@ export function LandingNav() {
         <div className="flex items-center justify-end gap-2 sm:gap-3">
           <PwaInstallButton compact />
           <ThemeToggle />
-          <Link href="/login" className="hidden px-2 py-2 text-sm font-medium text-ink transition-colors hover:text-ember dark:text-paper sm:inline-flex">
-            Sign in
+          <Link href="/workspace" className="hidden px-2 py-2 text-sm font-medium text-ink transition-colors hover:text-ember dark:text-paper sm:inline-flex">
+            Open workspace
+          </Link>
+          <Link href="/admin" className="hidden border border-ink/20 px-3 py-2 text-sm font-medium text-ink transition-colors hover:border-ink/45 hover:text-ember dark:border-paper/25 dark:text-paper dark:hover:border-paper/55 dark:hover:text-ember-light lg:inline-flex">
+            Restaurant admin
           </Link>
           <Link href="/register" className="hidden bg-ink px-4 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-ink-soft dark:bg-paper dark:text-ink dark:hover:bg-paper-dim lg:inline-flex">
             Start free
@@ -68,13 +71,16 @@ export function LandingNav() {
               </Link>
             ))}
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <Link href="/login" onClick={closeMenu} className="inline-flex items-center justify-center border border-ink/20 px-4 py-3 text-sm font-medium text-ink dark:border-paper/25 dark:text-paper">
-                Sign in
+              <Link href="/workspace" onClick={closeMenu} className="inline-flex items-center justify-center border border-ink/20 px-4 py-3 text-sm font-medium text-ink dark:border-paper/25 dark:text-paper">
+                Open workspace
               </Link>
-              <Link href="/register" onClick={closeMenu} className="inline-flex items-center justify-center bg-ink px-4 py-3 text-sm font-medium text-paper dark:bg-paper dark:text-ink">
-                Start free
+              <Link href="/admin" onClick={closeMenu} className="inline-flex items-center justify-center border border-ink/20 px-4 py-3 text-sm font-medium text-ink dark:border-paper/25 dark:text-paper">
+                Restaurant admin
               </Link>
             </div>
+            <Link href="/register" onClick={closeMenu} className="mt-2 inline-flex w-full items-center justify-center bg-ink px-4 py-3 text-sm font-medium text-paper dark:bg-paper dark:text-ink">
+              Start free
+            </Link>
             <div className="mt-2"><PwaInstallButton /></div>
           </nav>
         </div>

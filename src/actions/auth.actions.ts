@@ -46,7 +46,21 @@ export async function loginAction(formData: FormData): Promise<ActionResult<{ re
     });
 
     const organization = await OrganizationModel.findById(user.organizationId).select("onboarding").lean();
-    const redirectTo = organization?.onboarding?.status === "IN_PROGRESS" ? "/onboarding" : "/workspace";
+    const nextValue = formData.get("next");
+    const requestedPath = typeof nextValue === "string" ? nextValue : undefined;
+    // A destination can only be an internal restaurant route. This preserves
+    // the page a person deliberately chose without allowing open redirects.
+    const canReturnTo = typeof requestedPath === "string" && (
+      requestedPath === "/workspace" ||
+      requestedPath.startsWith("/workspace/") ||
+      requestedPath === "/admin" ||
+      requestedPath.startsWith("/admin/")
+    );
+    const redirectTo: string = organization?.onboarding?.status === "IN_PROGRESS"
+      ? "/onboarding"
+      : canReturnTo
+        ? requestedPath!
+        : "/workspace";
     return { ok: true, data: { redirectTo } };
   } catch (err) {
     return { ok: false, error: toClientError(err) };

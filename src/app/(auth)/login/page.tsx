@@ -4,14 +4,16 @@ import { loginAction } from "@/actions/auth.actions";
 import { AuthSubmitButton } from "@/components/ui/AuthSubmitButton";
 import { PasswordField } from "@/components/ui/PasswordField";
 
-export default function LoginPage({ searchParams }: { searchParams?: { error?: string } }) {
+export default function LoginPage({ searchParams }: { searchParams?: { error?: string; next?: string } }) {
   async function handleLogin(formData: FormData) {
     "use server";
     const result = await loginAction(formData);
     if (result.ok) redirect(result.data.redirectTo);
     // A real page would surface result.error.message via a client-side
     // wrapper (useFormState) — kept server-only here to stay a minimal slice.
-    redirect(`/login?error=${encodeURIComponent(result.error.message)}`);
+    const nextValue = formData.get("next");
+    const next = typeof nextValue === "string" && nextValue.startsWith("/") ? `&next=${encodeURIComponent(nextValue)}` : "";
+    redirect(`/login?error=${encodeURIComponent(result.error.message)}${next}`);
   }
 
   return (
@@ -24,6 +26,7 @@ export default function LoginPage({ searchParams }: { searchParams?: { error?: s
         <p className="mb-8 text-sm text-ink/60 dark:text-paper/60">Sign in to your organization</p>
         {searchParams?.error ? <p role="alert" className="mb-4 rounded border border-status-cancelled/50 bg-status-cancelled/10 px-3 py-2 text-sm">{searchParams.error}</p> : null}
         <form action={handleLogin} className="space-y-4">
+          {searchParams?.next ? <input type="hidden" name="next" value={searchParams.next} /> : null}
           <div>
             <label htmlFor="email" className="mb-1 block text-sm text-ink/80 dark:text-paper/80">
               Email
@@ -45,6 +48,14 @@ export default function LoginPage({ searchParams }: { searchParams?: { error?: s
             Set up your organization
           </Link>
         </p>
+        <div className="mt-6 grid grid-cols-2 gap-2 border-t border-ink-line/15 pt-5 dark:border-ink-line">
+          <Link href="/workspace" className="rounded border border-ink-line/25 px-3 py-2 text-center text-xs font-medium text-ink/70 transition-colors hover:border-ink-line hover:text-ink dark:border-paper/20 dark:text-paper/70 dark:hover:border-paper/45 dark:hover:text-paper">
+            Open workspace
+          </Link>
+          <Link href="/admin" className="rounded border border-ink-line/25 px-3 py-2 text-center text-xs font-medium text-ink/70 transition-colors hover:border-ink-line hover:text-ink dark:border-paper/20 dark:text-paper/70 dark:hover:border-paper/45 dark:hover:text-paper">
+            Restaurant admin
+          </Link>
+        </div>
       </div>
     </main>
   );

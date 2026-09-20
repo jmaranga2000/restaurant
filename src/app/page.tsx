@@ -8,8 +8,9 @@ const capabilities = [
 ];
 
 const portalLinks = [
-  { eyebrow: "For restaurant teams", title: "Step into service", description: "Take orders, keep the kitchen moving, manage stock, and see how every branch is performing.", href: "/login", action: "Restaurant login", number: "01", tone: "bg-ember text-white hover:bg-ember-dark" },
-  { eyebrow: "For platform staff", title: "Oversee the network", description: "Review restaurants, manage account health, and keep the Restaurant OS platform running smoothly.", href: "/super-admin/login", action: "Super Admin login", number: "02", tone: "border border-ink-line bg-ink-soft text-paper hover:bg-ink-line" },
+  { eyebrow: "For restaurant teams", title: "Step into service", description: "Take orders, keep the kitchen moving, manage stock, and see how every branch is performing.", href: "/workspace", action: "Open workspace", number: "01", tone: "bg-ember text-white hover:bg-ember-dark" },
+  { eyebrow: "For restaurant owners", title: "Run your restaurant", description: "Set up branches, users, permissions, restaurant details, and the controls behind each shift.", href: "/admin", action: "Open restaurant admin", number: "02", tone: "border border-ink-line bg-ink-soft text-paper hover:bg-ink-line" },
+  { eyebrow: "For platform staff", title: "Oversee the network", description: "Review restaurants, manage account health, and keep the Restaurant OS platform running smoothly.", href: "/super-admin/login", action: "Super Admin login", number: "03", tone: "border border-ink/20 bg-paper text-ink hover:bg-paper-dim dark:border-paper/25 dark:bg-ink dark:text-paper dark:hover:bg-ink-soft" },
 ];
 
 const heroImage = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=2400&q=90";
@@ -58,6 +59,9 @@ export default function HomePage() {
           <div className="mt-10 flex flex-col gap-5 sm:flex-row sm:items-center">
             <Link href="/register" className="group inline-flex items-center justify-center gap-3 bg-ember px-5 py-3.5 text-sm font-medium text-white transition-colors hover:bg-ember-dark sm:w-auto">
               Start your restaurant <ArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+            <Link href="/workspace" className="group inline-flex items-center justify-center gap-3 border border-paper/35 bg-ink/35 px-5 py-3.5 text-sm font-medium text-paper backdrop-blur-sm transition-colors hover:border-paper/65 hover:bg-ink/60 sm:w-auto">
+              Open your workspace <ArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
             <p className="font-mono text-[10px] uppercase tracking-[0.13em] text-paper/55">Built for one location or one hundred</p>
           </div>
