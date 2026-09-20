@@ -84,7 +84,20 @@ export function toClientError(err: unknown): { message: string; code: string } {
     }
     return { message: err.message, code: err.code };
   }
+  if (err instanceof ZodError) {
+    return {
+      message: err.issues[0]?.message ?? "Check the information you entered and try again.",
+      code: "VALIDATION_ERROR",
+    };
+  }
+  if (typeof err === "object" && err !== null && "code" in err && (err as { code?: unknown }).code === 11000) {
+    return { message: "An account or restaurant with those details already exists.", code: "CONFLICT" };
+  }
+  if (typeof err === "object" && err !== null && "name" in err && (err as { name?: unknown }).name === "MongooseServerSelectionError") {
+    return { message: "We couldn't reach the database. Please try again shortly.", code: "DATABASE_UNAVAILABLE" };
+  }
   // eslint-disable-next-line no-console
   console.error("[UNHANDLED_ERROR]", err);
   return { message: "Something went wrong. Please try again.", code: "INTERNAL_ERROR" };
 }
+import { ZodError } from "zod";

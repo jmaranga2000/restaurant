@@ -44,12 +44,12 @@ export function KitchenBoard({ initialOrders }: { initialOrders: BoardOrder[] })
   }
 
   return (
-    <div className="grid grid-cols-3 gap-4 p-4 h-screen bg-ink">
+    <div className="grid h-screen grid-cols-3 gap-4 bg-paper p-4 text-ink dark:bg-ink dark:text-paper">
       {COLUMNS.map((col) => {
         const columnOrders = orders.filter((o) => col.accept.includes(o.status));
         return (
           <div key={col.title} className="flex flex-col min-h-0">
-            <h2 className="font-display text-paper/80 text-sm uppercase tracking-wide mb-2">
+            <h2 className="mb-2 font-display text-sm uppercase tracking-wide text-ink/80 dark:text-paper/80">
               {col.title} · {columnOrders.length}
             </h2>
             <div className="flex-1 overflow-y-auto space-y-3">
@@ -58,21 +58,21 @@ export function KitchenBoard({ initialOrders }: { initialOrders: BoardOrder[] })
                 return (
                   <div
                     key={order.id}
-                    className={`rounded-lg p-3 bg-ink-soft border ${
+                    className={`rounded-lg border bg-white p-3 dark:bg-ink-soft ${
                       delayed ? "border-status-cancelled" : "border-ink-line"
                     }`}
                   >
                     <div className="flex justify-between items-baseline mb-2">
-                      <span className="font-mono text-paper text-lg">#{order.orderNumber}</span>
-                      <span className={`text-xs ${delayed ? "text-status-cancelled" : "text-paper/50"}`}>
+                      <span className="font-mono text-lg">#{order.orderNumber}</span>
+                      <span className={`text-xs ${delayed ? "text-status-cancelled" : "text-ink/50 dark:text-paper/50"}`}>
                         {minutesSince(order.createdAt)}m
                       </span>
                     </div>
                     <ul className="space-y-1 mb-3">
                       {order.items.map((item, idx) => (
-                        <li key={idx} className="text-sm text-paper/90">
+                        <li key={idx} className="text-sm text-ink/90 dark:text-paper/90">
                           {item.quantity}× {item.name}
-                          {item.notes && <span className="text-paper/50"> — {item.notes}</span>}
+                          {item.notes && <span className="text-ink/50 dark:text-paper/50"> — {item.notes}</span>}
                         </li>
                       ))}
                     </ul>

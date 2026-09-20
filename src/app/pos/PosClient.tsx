@@ -109,7 +109,7 @@ export function PosClient({ menu, branchId }: { menu: MenuProduct[]; branchId: s
   }
 
   return (
-    <div className="grid grid-cols-[1fr_360px] h-screen">
+    <div className="grid h-screen grid-cols-[1fr_360px] bg-paper text-ink dark:bg-ink dark:text-paper">
       <div className="overflow-y-auto p-6">
         <h1 className="font-display text-xl mb-4">Menu</h1>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
@@ -119,25 +119,25 @@ export function PosClient({ menu, branchId }: { menu: MenuProduct[]; branchId: s
               <button
                 key={product.id}
                 onClick={() => addToCart(product)}
-                className="text-left border border-ink-line/20 rounded-lg p-3 bg-white hover:border-ember transition-colors"
+                className="rounded-lg border border-ink-line/20 bg-white p-3 text-left transition-colors hover:border-ember dark:bg-ink-soft"
               >
                 <p className="font-medium">{product.name}</p>
-                <p className="text-sm text-ink/60 mt-1">{formatMoney(variant?.priceMinor ?? 0)}</p>
+                <p className="mt-1 text-sm text-ink/60 dark:text-paper/60">{formatMoney(variant?.priceMinor ?? 0)}</p>
               </button>
             );
           })}
-          {menu.length === 0 && <p className="text-ink/50 text-sm col-span-full">No menu items yet.</p>}
+          {menu.length === 0 && <p className="col-span-full text-sm text-ink/50 dark:text-paper/50">No menu items yet.</p>}
         </div>
       </div>
 
-      <aside className="border-l border-ink-line/20 bg-white flex flex-col">
+      <aside className="flex flex-col border-l border-ink-line/20 bg-white dark:bg-ink-soft">
         <div className="p-4 border-b border-ink-line/20 font-display">Current order</div>
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {cart.map((line) => (
             <div key={line.key} className="flex items-start justify-between gap-2">
               <div>
                 <p className="text-sm font-medium">{line.productName}</p>
-                {line.variantName && <p className="text-xs text-ink/50">{line.variantName}</p>}
+                {line.variantName && <p className="text-xs text-ink/50 dark:text-paper/50">{line.variantName}</p>}
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -158,7 +158,7 @@ export function PosClient({ menu, branchId }: { menu: MenuProduct[]; branchId: s
               </div>
             </div>
           ))}
-          {cart.length === 0 && <p className="text-ink/40 text-sm">Tap a menu item to add it.</p>}
+          {cart.length === 0 && <p className="text-sm text-ink/40 dark:text-paper/40">Tap a menu item to add it.</p>}
         </div>
         <div className="p-4 border-t border-ink-line/20 space-y-3">
           <div className="flex justify-between font-medium">

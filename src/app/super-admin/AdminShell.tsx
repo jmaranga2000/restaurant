@@ -43,7 +43,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-paper text-ink">
+    <div className="min-h-screen bg-paper text-ink transition-colors duration-300 dark:bg-ink dark:text-paper">
       {sidebarOpen && <button aria-label="Close navigation" onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-20 bg-ink/30 lg:hidden" />}
         <aside className={`fixed inset-y-0 left-0 z-30 flex w-52 flex-col border-r border-ink-line/15 bg-ink text-paper transition-transform lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-14 items-center border-b border-ink-line px-4">
@@ -73,12 +73,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="lg:pl-64">
-          <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-ink-line/15 bg-paper/95 px-4 backdrop-blur sm:px-6">
-          <button onClick={() => setSidebarOpen(true)} className="text-sm text-ink/60 lg:hidden">Menu</button>
-          <div className="hidden h-9 w-72 items-center gap-3 border border-ink-line/15 bg-white px-3 text-xs text-ink/35 sm:flex"><span>⌕</span><span className="flex-1">Search anything...</span><span className="font-mono text-[9px]">⌘ K</span></div>
+          <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-ink-line/15 bg-paper/95 px-4 backdrop-blur dark:bg-ink/95 sm:px-6">
+          <button onClick={() => setSidebarOpen(true)} className="text-sm text-ink/60 dark:text-paper/60 lg:hidden">Menu</button>
+          <div className="hidden h-9 w-72 items-center gap-3 border border-ink-line/15 bg-white px-3 text-xs text-ink/35 dark:bg-ink-soft dark:text-paper/35 sm:flex"><span>⌕</span><span className="flex-1">Search anything...</span><span className="font-mono text-[9px]">⌘ K</span></div>
           <div className="flex items-center gap-4">
-            <span className="text-lg text-ink/50">♧</span><span className="text-xs text-ink/45">?</span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-medium text-white">JM</span><span className="hidden text-xs text-ink/60 sm:inline">James Maranga<small className="block text-[9px] text-indigo-500">Super Admin</small></span><span className="text-xs text-ink/40">⌄</span>
+            <span className="text-lg text-ink/50 dark:text-paper/50">♧</span><span className="text-xs text-ink/45 dark:text-paper/45">?</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-medium text-white">JM</span><span className="hidden text-xs text-ink/60 dark:text-paper/60 sm:inline">James Maranga<small className="block text-[9px] text-indigo-500">Super Admin</small></span><span className="text-xs text-ink/40 dark:text-paper/40">⌄</span>
           </div>
         </header>
         <main>{children}</main>

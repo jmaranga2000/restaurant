@@ -28,7 +28,7 @@ export function DisplayClient({ branchName, waitingOrderNumbers, readyOrderNumbe
   }, [router]);
 
   return (
-    <div className="h-screen w-screen bg-ink text-paper grid grid-rows-[auto_1fr] overflow-hidden">
+    <div className="grid h-screen w-screen grid-rows-[auto_1fr] overflow-hidden bg-paper text-ink dark:bg-ink dark:text-paper">
       <header className="text-center py-4 border-b border-ink-line">
         <h1 className="font-display text-2xl tracking-wide">{branchName}</h1>
       </header>
@@ -41,7 +41,7 @@ export function DisplayClient({ branchName, waitingOrderNumbers, readyOrderNumbe
             {[...SAMPLE_SLIDES, ...SAMPLE_SLIDES].map((slide, idx) => (
               <div key={idx} className="text-center">
                 <p className="font-display text-3xl mb-2">{slide.title}</p>
-                <p className="text-paper/60">{slide.body}</p>
+                <p className="text-ink/60 dark:text-paper/60">{slide.body}</p>
               </div>
             ))}
           </div>
@@ -69,14 +69,14 @@ export function DisplayClient({ branchName, waitingOrderNumbers, readyOrderNumbe
 function OrderColumn({ title, numbers, accent }: { title: string; numbers: string[]; accent: string }) {
   return (
     <div className="p-6 overflow-y-auto">
-      <h2 className="text-paper/50 text-sm uppercase tracking-wide mb-4">{title}</h2>
+      <h2 className="mb-4 text-sm uppercase tracking-wide text-ink/50 dark:text-paper/50">{title}</h2>
       <div className="grid grid-cols-2 gap-3">
         {numbers.map((n) => (
           <div key={n} className={`font-mono text-3xl font-medium ${accent}`}>
             #{n}
           </div>
         ))}
-        {numbers.length === 0 && <p className="text-paper/30 text-sm col-span-2">None right now</p>}
+        {numbers.length === 0 && <p className="col-span-2 text-sm text-ink/30 dark:text-paper/30">None right now</p>}
       </div>
     </div>
   );

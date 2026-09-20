@@ -10,14 +10,39 @@
 
 html {
   background: theme("colors.paper.DEFAULT");
+  color-scheme: light;
 }
 
 html.dark {
   background: theme("colors.ink.DEFAULT");
+  color-scheme: dark;
 }
 
 body {
   font-family: var(--font-body);
+}
+
+/* A number of operational pages use white cards and ink text directly.
+   These shared rules keep those existing controls legible under the global
+   dark preference without changing their light-theme styling. */
+.dark .bg-white,
+.dark .bg-paper {
+  background-color: theme("colors.ink.soft");
+}
+
+.dark .text-ink {
+  color: theme("colors.paper.DEFAULT");
+}
+
+.dark [class*="text-ink/"] {
+  color: rgb(247 245 240 / 0.65);
+}
+
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea {
+  background-color: theme("colors.ink.soft");
+  color: theme("colors.paper.DEFAULT");
 }
 
 @media (prefers-reduced-motion: reduce) {

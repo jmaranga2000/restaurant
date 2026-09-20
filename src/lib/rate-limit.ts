@@ -55,19 +55,24 @@ export async function consumeAuthRateLimit({
   const key = createKey(scope, requestHeaders, email);
 
   if (redis) {
-    const attempts = await redis.incr(key);
-    if (attempts === 1) await redis.expire(key, AUTH_WINDOW_SECONDS);
+    try {
+      const attempts = await redis.incr(key);
+      if (attempts === 1) await redis.expire(key, AUTH_WINDOW_SECONDS);
 
-    const retryAfterSeconds = attempts > AUTH_ATTEMPT_LIMIT
-      ? Math.max(1, await redis.ttl(key))
-      : 0;
+      const retryAfterSeconds = attempts > AUTH_ATTEMPT_LIMIT
+        ? Math.max(1, await redis.ttl(key))
+        : 0;
 
-    return {
-      allowed: attempts <= AUTH_ATTEMPT_LIMIT,
-      key,
-      retryAfterSeconds,
-      remainingAttempts: Math.max(0, AUTH_ATTEMPT_LIMIT - attempts),
-    };
+      return {
+        allowed: attempts <= AUTH_ATTEMPT_LIMIT,
+        key,
+        retryAfterSeconds,
+        remainingAttempts: Math.max(0, AUTH_ATTEMPT_LIMIT - attempts),
+      };
+    } catch {
+      // Keep authentication usable if an optional rate-limit service is down.
+      // The process-local fallback retains the three-attempt safeguard.
+    }
   }
 
   const store = getLocalRateLimitStore();
@@ -88,8 +93,12 @@ export async function consumeAuthRateLimit({
 
 export async function resetAuthRateLimit(key: string): Promise<void> {
   if (redis) {
-    await redis.del(key);
-    return;
+    try {
+      await redis.del(key);
+      return;
+    } catch {
+      // Fall through to remove any local fallback entry.
+    }
   }
 
   getLocalRateLimitStore().delete(key);

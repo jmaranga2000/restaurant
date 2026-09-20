@@ -8,7 +8,7 @@ import { OrganizationModel } from "@/models/Organization";
 import { hashPassword, verifyPassword } from "@/lib/auth";
 import { setSessionCookie, clearSessionCookie } from "@/lib/session";
 import { loginSchema, registerOrganizationSchema } from "@/validations/auth.schema";
-import { toClientError, AuthenticationError, RateLimitError } from "@/lib/errors";
+import { toClientError, AuthenticationError, RateLimitError, ConflictError } from "@/lib/errors";
 import { consumeAuthRateLimit, rateLimitMessage, resetAuthRateLimit } from "@/lib/rate-limit";
 import { DEFAULT_ROLE_TEMPLATES } from "@/types/permissions";
 
@@ -84,6 +84,13 @@ export async function registerOrganizationAction(
       .trim()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
+
+    const [existingOrganization, existingUser] = await Promise.all([
+      OrganizationModel.exists({ slug }),
+      UserModel.exists({ email: parsed.email }),
+    ]);
+    if (existingOrganization) throw new ConflictError("A restaurant with that name already exists. Try a more specific name.");
+    if (existingUser) throw new ConflictError("An account already uses this email address. Sign in instead.");
 
     const org = await OrganizationModel.create({ name: parsed.organizationName, slug });
 

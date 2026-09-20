@@ -21,7 +21,7 @@ export function PasswordField({
 
   return (
     <div>
-      <label htmlFor={id} className="mb-1 block text-sm text-paper/80">
+      <label htmlFor={id} className="mb-1 block text-sm text-ink/80 dark:text-paper/80">
         {label}
       </label>
       <div className="relative">
@@ -32,12 +32,12 @@ export function PasswordField({
           required
           minLength={minLength}
           autoComplete={autoComplete}
-          className="w-full rounded border border-ink-line bg-ink-soft px-3 py-2 pr-16 text-paper focus-visible:outline-none"
+          className="w-full rounded border border-ink-line bg-white px-3 py-2 pr-16 text-ink focus-visible:outline-none dark:bg-ink-soft dark:text-paper"
         />
         <button
           type="button"
           onClick={() => setIsVisible((visible) => !visible)}
-          className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-paper/65 transition-colors hover:text-paper focus-visible:outline-none"
+          className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-ink/65 transition-colors hover:text-ink focus-visible:outline-none dark:text-paper/65 dark:hover:text-paper"
           aria-pressed={isVisible}
           aria-label={`${isVisible ? "Hide" : "Show"} ${label.toLowerCase()}`}
         >

@@ -28,7 +28,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const canManageOrg = ctx.permissions.includes(PERMISSIONS.SETTINGS_MANAGE);
 
   return (
-    <div className="min-h-screen flex">
+    <div className="flex min-h-screen bg-paper text-ink transition-colors duration-300 dark:bg-ink dark:text-paper">
       <aside className="w-56 shrink-0 bg-ink text-paper flex flex-col">
         <div className="px-5 py-5">
           <span className="font-display text-lg">Restaurant OS</span>
@@ -68,7 +68,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </button>
         </form>
       </aside>
-      <main className="flex-1 bg-paper">{children}</main>
+      <main className="flex-1 bg-paper dark:bg-ink">{children}</main>
     </div>
   );
 }
