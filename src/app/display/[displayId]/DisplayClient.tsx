@@ -35,15 +35,17 @@ export function DisplayClient({
   menu: DisplayMenuItem[];
 }) {
   const [now, setNow] = useState(() => new Date());
-  const [slide, setSlide] = useState(0);
-  const [menuPage, setMenuPage] = useState(0);
   const [promotionIndex, setPromotionIndex] = useState(0);
   const [liveData, setLiveData] = useState({ waitingOrders, readyOrders, menu });
-  const categories = useMemo(() => Array.from(new Set(liveData.menu.map((item) => item.category))), [liveData.menu]);
-  const activeCategory = categories.length ? categories[slide % categories.length] : "Menu";
-  const activeMenu = liveData.menu.filter((item) => item.category === activeCategory);
-  const menuOffset = activeMenu.length ? (menuPage * 6) % activeMenu.length : 0;
-  const visibleMenu = activeMenu.slice(menuOffset, menuOffset + 6);
+  const menuGroups = useMemo(() => {
+    const grouped = new Map<string, DisplayMenuItem[]>();
+    for (const item of liveData.menu) {
+      const categoryItems = grouped.get(item.category);
+      if (categoryItems) categoryItems.push(item);
+      else grouped.set(item.category, [item]);
+    }
+    return Array.from(grouped, ([category, items]) => ({ category, items }));
+  }, [liveData.menu]);
   const promotionalItem = liveData.menu.length ? liveData.menu[promotionIndex % liveData.menu.length] : undefined;
 
   useEffect(() => {
@@ -58,12 +60,9 @@ export function DisplayClient({
       }
     }, 10000);
     const clock = window.setInterval(() => setNow(new Date()), 1000);
-    const carousel = window.setInterval(() => setSlide((current) => current + 1), 9000);
-    const menuCarousel = window.setInterval(() => setMenuPage((current) => current + 1), 5000);
     const promotionCarousel = window.setInterval(() => setPromotionIndex((current) => current + 1), 7000);
     return () => {
-      window.clearInterval(refresh); window.clearInterval(clock); window.clearInterval(carousel);
-      window.clearInterval(menuCarousel); window.clearInterval(promotionCarousel);
+      window.clearInterval(refresh); window.clearInterval(clock); window.clearInterval(promotionCarousel);
     };
   }, [displayId]);
 
@@ -89,8 +88,8 @@ export function DisplayClient({
           </aside>
 
           <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#071a2c] p-[1vw] shadow-[0_15px_40px_rgba(0,0,0,.22)]">
-            <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-white/10 pb-[.8vw]">{categories.length ? categories.map((entry) => <button key={entry} onClick={() => setSlide(categories.indexOf(entry))} className={`whitespace-nowrap rounded-lg px-[1vw] py-[.7vw] text-[clamp(.6rem,.85vw,1rem)] font-semibold transition ${activeCategory === entry ? "bg-[#ffad28] text-[#07111d]" : "border border-white/10 bg-[#0a2136] text-white/75"}`}>{entry}</button>) : <span className="px-3 py-2 text-xs text-white/55">Menu coming soon</span>}</div>
-            <div className="mt-[.8vw] min-h-0 flex-1 overflow-hidden"><div key={`${activeCategory}-${menuPage}`} className="display-menu-slide space-y-[.65vw]">{visibleMenu.map((item) => <article key={item.id} className="grid grid-cols-[clamp(55px,7.2vw,105px)_1fr_auto] items-center gap-[.8vw] rounded-xl border border-white/10 bg-[#0a2035] p-[.65vw] shadow-[0_6px_18px_rgba(0,0,0,.16)]"><div className="aspect-square overflow-hidden rounded-lg bg-[#102d46]">{item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-[clamp(1rem,2vw,2.4rem)]">🍽</div>}</div><div className="min-w-0"><h3 className="truncate text-[clamp(.8rem,1.12vw,1.25rem)] font-bold">{item.name}</h3><p className="mt-1 line-clamp-2 text-[clamp(.58rem,.75vw,.85rem)] leading-relaxed text-white/65">{item.description}</p></div><b className="whitespace-nowrap text-[clamp(.75rem,1vw,1.1rem)] text-[#fff4dc]">{displayMoney(item.priceMinor)}</b></article>)}{!activeMenu.length ? <div className="grid min-h-64 place-items-center rounded-xl border border-dashed border-white/15 text-center text-sm text-white/55">Create menu items in Restaurant Admin<br />to show them here.</div> : null}</div></div>
+            <div className="flex shrink-0 items-center justify-between border-b border-white/10 pb-[.8vw]"><p className="text-[clamp(.65rem,.9vw,1rem)] font-semibold uppercase tracking-[.2em] text-[#ffd070]">Our menu</p><span className="text-[clamp(.55rem,.72vw,.78rem)] text-white/50">Freshly prepared to order</span></div>
+            <div className="display-menu-window mt-[.8vw] min-h-0 flex-1 overflow-hidden"><MenuReel menuGroups={menuGroups} /></div>
             {promotionalItem ? <div className="mt-[.8vw] flex shrink-0 items-center gap-3 rounded-xl border border-[#f3a420]/80 bg-gradient-to-r from-[#4b2700] to-[#152336] p-[.7vw]"><div className="hidden h-12 w-14 overflow-hidden rounded-lg sm:block">{promotionalItem.imageUrl ? <img src={promotionalItem.imageUrl} alt="" className="h-full w-full object-cover" /> : <span className="grid h-full place-items-center text-xl">🍴</span>}</div><div className="min-w-0 flex-1"><p className="font-semibold text-[#ffbf47]">Today’s featured pick</p><p className="truncate text-xs text-white/65">{promotionalItem.name} · {displayMoney(promotionalItem.priceMinor)}</p></div><span className="rounded-full bg-[#ffad28] px-3 py-2 text-xs font-bold text-[#07111d]">View menu →</span></div> : null}
           </section>
         </section>
@@ -99,8 +98,41 @@ export function DisplayClient({
       </div>
 
       <footer className="flex h-[7.5vh] min-h-14 items-center justify-between gap-4 border-t border-white/10 bg-[#071521] px-[2vw] text-[clamp(.62rem,.95vw,1rem)]"><p className="font-semibold text-[#ffba3c]">⌁ Today’s special <span className="mx-3 text-white/40">|</span><span className="font-normal text-white/85">Fresh ingredients, better taste!</span></p><div className="hidden items-center gap-2 text-white/65 md:flex"><span className="grid h-7 w-7 place-items-center border border-white/40">▦</span><span className="text-xs">Scan for digital menu</span></div><p className="font-serif text-lg italic text-white/85">Thank you! <span className="ml-1 text-[#ffad28]">♥</span></p></footer>
-      <style>{`@keyframes display-fade { from { opacity: .25; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } } .display-menu-slide { animation: display-fade .55s ease-out }`}</style>
+      <style>{`@keyframes display-menu-roll { from { transform: translateY(0); } to { transform: translateY(-50%); } } .display-menu-reel { animation: display-menu-roll 52s linear infinite; will-change: transform; } .display-menu-window:hover .display-menu-reel { animation-play-state: paused; } @media (prefers-reduced-motion: reduce) { .display-menu-reel { animation: none; } }`}</style>
     </main>
+  );
+}
+
+function MenuReel({ menuGroups }: { menuGroups: { category: string; items: DisplayMenuItem[] }[] }) {
+  if (!menuGroups.length) {
+    return <div className="grid h-full min-h-64 place-items-center rounded-xl border border-dashed border-white/15 text-center text-sm text-white/55">Create menu items in Restaurant Admin<br />to show them here.</div>;
+  }
+
+  // Repeating the full catalog keeps the upward reel visually continuous,
+  // even for a restaurant that currently has only a handful of items.
+  return (
+    <div className="display-menu-reel space-y-[1vw] pb-[1vw]">
+      {Array.from({ length: 12 }, (_, cycle) => menuGroups.map((group) => (
+        <section key={`${cycle}-${group.category}`} aria-hidden={cycle > 0} className="space-y-[.55vw]">
+          <div className="flex items-center gap-3 px-1 pt-[.4vw]">
+            <h2 className="whitespace-nowrap text-[clamp(.85rem,1.25vw,1.4rem)] font-bold uppercase tracking-[.12em] text-[#ffbd45]">{group.category}</h2>
+            <span className="h-px flex-1 bg-[#ffbd45]/30" />
+          </div>
+          {group.items.map((item) => (
+            <article key={`${cycle}-${group.category}-${item.id}`} className="grid grid-cols-[clamp(48px,6vw,82px)_1fr_auto] items-center gap-[.7vw] rounded-xl border border-white/10 bg-[#0a2035] p-[.58vw] shadow-[0_6px_18px_rgba(0,0,0,.16)]">
+              <div className="aspect-square overflow-hidden rounded-lg bg-[#102d46]">
+                {item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-[clamp(1rem,2vw,2rem)]">🍽</div>}
+              </div>
+              <div className="min-w-0">
+                <h3 className="truncate text-[clamp(.74rem,1.05vw,1.15rem)] font-bold">{item.name}</h3>
+                <p className="mt-1 line-clamp-2 text-[clamp(.54rem,.7vw,.78rem)] leading-relaxed text-white/65">{item.description}</p>
+              </div>
+              <b className="whitespace-nowrap text-[clamp(.7rem,.92vw,1rem)] text-[#fff4dc]">{displayMoney(item.priceMinor)}</b>
+            </article>
+          ))}
+        </section>
+      ))}
+    </div>
   );
 }
 
