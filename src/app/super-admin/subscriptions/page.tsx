@@ -1,0 +1,15 @@
+import { requirePlatformSession } from "@/lib/platform-session";
+import { PlatformService } from "@/services/platform.service";
+
+export default async function SuperAdminSubscriptionsPage() {
+  await requirePlatformSession();
+  const organizations = await PlatformService.listOrganizations();
+  const active = organizations.filter((organization) => organization.isActive).length;
+
+  return <div className="mx-auto max-w-[1500px] p-5 sm:p-8">
+    <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="font-mono text-xs uppercase tracking-[0.18em] text-indigo-500">Billing control</p><h1 className="mt-3 font-display text-3xl">Subscriptions</h1><p className="mt-2 text-sm text-ink/50">Monitor plan assignment and billing readiness across organizations.</p></div><button className="border border-ink-line/20 bg-white px-4 py-2 text-sm">Export</button></div>
+    <div className="grid gap-3 sm:grid-cols-4"><div className="border border-ink-line/15 bg-white p-5"><p className="text-xs text-ink/45">Active subscriptions</p><p className="mt-3 font-display text-3xl">{active}</p></div><div className="border border-ink-line/15 bg-white p-5"><p className="text-xs text-ink/45">Trial</p><p className="mt-3 font-display text-3xl">0</p></div><div className="border border-ink-line/15 bg-white p-5"><p className="text-xs text-ink/45">Past due</p><p className="mt-3 font-display text-3xl text-status-preparing">0</p></div><div className="border border-ink-line/15 bg-white p-5"><p className="text-xs text-ink/45">Cancelled</p><p className="mt-3 font-display text-3xl text-status-cancelled">{organizations.length - active}</p></div></div>
+    <div className="mt-6 overflow-x-auto border border-ink-line/15 bg-white"><table className="w-full min-w-[760px] text-sm"><thead className="border-b border-ink-line/15 bg-paper text-left text-xs uppercase tracking-wide text-ink/45"><tr><th className="px-5 py-3 font-normal">Organization</th><th className="px-3 py-3 font-normal">Plan</th><th className="px-3 py-3 font-normal">Billing cycle</th><th className="px-3 py-3 font-normal">Amount</th><th className="px-3 py-3 font-normal">Status</th><th className="px-5 py-3 font-normal">Action</th></tr></thead><tbody>{organizations.map((organization) => <tr key={organization.id} className="border-b border-ink-line/10"><td className="px-5 py-4 font-medium">{organization.name}</td><td className="px-3 py-4"><span className="rounded bg-indigo-50 px-2 py-1 text-xs text-indigo-600">Enterprise</span></td><td className="px-3 py-4 text-xs text-ink/55">Monthly</td><td className="px-3 py-4">KSh 25,000</td><td className="px-3 py-4"><span className={organization.isActive ? "text-status-ready" : "text-status-cancelled"}>● {organization.isActive ? "Active" : "Suspended"}</span></td><td className="px-5 py-4 text-xs text-indigo-500">View subscription →</td></tr>)}</tbody></table></div>
+    <p className="mt-4 border-l-2 border-status-preparing bg-amber-50 p-4 text-xs text-amber-800">Subscription and payment records are ready for connection to a billing provider. The current plan values are platform defaults, not live payment data.</p>
+  </div>;
+}
