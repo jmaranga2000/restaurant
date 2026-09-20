@@ -18,6 +18,12 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export const ORDER_TYPES = ["DINE_IN", "TAKEAWAY", "PICKUP", "DELIVERY"] as const;
 export type OrderType = (typeof ORDER_TYPES)[number];
 
+/** Kitchen progress belongs to individual order items so Grill, Fryer, and
+ * Drinks can work one customer order independently. The broader order status
+ * remains the commercial source of truth. */
+export const KITCHEN_ITEM_STATUSES = ["NEW", "PREPARING", "READY", "COMPLETED"] as const;
+export type KitchenItemStatus = (typeof KITCHEN_ITEM_STATUSES)[number];
+
 /**
  * These are deliberately restaurant-facing codes. The payment gateway or
  * processor behind a method may change, but a cashier should always see the

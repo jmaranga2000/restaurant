@@ -11,6 +11,7 @@ import {
   refundPaymentSchema,
   splitHeldOrderSchema,
   transferTableSchema,
+  updateKitchenItemsSchema,
   updateOrderStatusSchema,
   voidOrderSchema,
 } from "@/validations/order.schema";
@@ -139,6 +140,23 @@ export async function updateOrderStatusAction(input: unknown): Promise<ActionRes
     const order = await OrderService.transitionStatus(ctx, parsed.orderId, parsed.nextStatus, parsed.reason);
 
     revalidatePath("/kitchen");
+    revalidatePath("/pos");
+    revalidatePath(`/display/${order.branchId}`);
+    return { ok: true, data: { status: order.status } };
+  } catch (err) {
+    return { ok: false, error: toClientError(err) };
+  }
+}
+
+/** Advances only the selected station items. This is what allows one order to
+ * be cooked independently by Grill, Fryer, Drinks, and other stations. */
+export async function updateKitchenItemsAction(input: unknown): Promise<ActionResult<{ status: string }>> {
+  try {
+    const session = await requireSession();
+    const ctx = await loadAuthContext(session);
+    const parsed = updateKitchenItemsSchema.parse(input);
+    const order = await OrderService.updateKitchenItems(ctx, parsed.orderId, parsed.itemIds, parsed.nextStatus);
+    revalidatePath("/kitchen", "layout");
     revalidatePath("/pos");
     revalidatePath(`/display/${order.branchId}`);
     return { ok: true, data: { status: order.status } };

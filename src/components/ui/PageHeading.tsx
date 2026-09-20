@@ -18,7 +18,7 @@ export function PageHeading({
         <h1 className="mt-1 font-display text-3xl tracking-tight text-ink dark:text-paper">{title}</h1>
         {description ? <p className="mt-2 max-w-2xl text-sm text-ink/60 dark:text-paper/65">{description}</p> : null}
       </div>
-      {actions ? <div className="flex shrink-0 flex-wrap gap-2">{actions}</div> : null}
+      {actions ? <div className="flex w-full shrink-0 flex-col gap-2 min-[420px]:flex-row sm:w-auto sm:flex-wrap [&>a]:w-full [&>button]:w-full min-[420px]:[&>a]:w-auto min-[420px]:[&>button]:w-auto">{actions}</div> : null}
     </header>
   );
 }

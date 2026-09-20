@@ -25,7 +25,7 @@ export function BranchSwitcher({ branches, activeBranchId, allowAll = false }: {
       value={activeBranchId ?? (allowAll ? "__all__" : "")}
       disabled={isPending}
       onChange={(e) => onChange(e.target.value)}
-      className="bg-ink-soft border border-ink-line rounded px-2 py-1 text-sm text-paper"
+      className="w-full min-w-0 rounded-lg border border-ink-line bg-ink-soft px-3 py-2 text-sm text-paper outline-none transition focus:border-indigo-300"
     >
       {allowAll ? <option value="__all__">All branches</option> : null}
       {branches.map((b) => (

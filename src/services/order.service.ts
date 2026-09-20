@@ -11,7 +11,7 @@ import { InventoryService } from "@/services/inventory.service";
 import { publishEvent, branchChannel, REALTIME_EVENTS, type RealtimeEventName } from "@/lib/realtime";
 import { requirePermissions, requireBranchAccess, type AuthContext } from "@/permissions/authorize";
 import { PERMISSIONS } from "@/types/permissions";
-import { canTransition, type OrderStatus } from "@/types/order";
+import { canTransition, type KitchenItemStatus, type OrderStatus } from "@/types/order";
 import type { CreateOrderInput, RecordPaymentInput, RefundPaymentInput } from "@/validations/order.schema";
 import { BusinessRuleError, ConflictError, NotFoundError } from "@/lib/errors";
 
@@ -19,6 +19,7 @@ const STATUS_EVENT_MAP: Partial<Record<OrderStatus, RealtimeEventName>> = {
   CONFIRMED: REALTIME_EVENTS.ORDER_CONFIRMED,
   PREPARING: REALTIME_EVENTS.ORDER_PREPARING,
   READY: REALTIME_EVENTS.ORDER_READY,
+  SERVED: REALTIME_EVENTS.ORDER_COMPLETED,
   COMPLETED: REALTIME_EVENTS.ORDER_COMPLETED,
   CANCELLED: REALTIME_EVENTS.ORDER_CANCELLED,
 };
@@ -255,7 +256,8 @@ export const OrderService = {
    * records an audit entry, and publishes the matching realtime event.
    */
   async transitionStatus(ctx: AuthContext, orderId: string, nextStatus: OrderStatus, reason?: string) {
-    requirePermissions(ctx, nextStatus === "CANCELLED" ? PERMISSIONS.ORDERS_CANCEL : PERMISSIONS.ORDERS_UPDATE);
+    const kitchenTransition = nextStatus === "PREPARING" || nextStatus === "READY" || nextStatus === "SERVED";
+    requirePermissions(ctx, nextStatus === "CANCELLED" ? PERMISSIONS.ORDERS_CANCEL : kitchenTransition ? PERMISSIONS.KITCHEN_ACCESS : PERMISSIONS.ORDERS_UPDATE);
     await connectToDatabase();
 
     if (!ctx.activeBranchId) throw new BusinessRuleError("No active branch selected for this session.");
@@ -318,6 +320,96 @@ export const OrderService = {
       await clearTableWhenNoOpenOrders(ctx, String(order.branchId), String(order.tableId), String(order._id));
     }
 
+    return order;
+  },
+
+  /**
+   * Moves items, rather than the entire sale, through a kitchen station. The
+   * commercial order lifecycle is then advanced only when its item progress
+   * makes that transition true. This is what lets Grill and Drinks prepare
+   * different parts of order #1045 at the same time.
+   */
+  async updateKitchenItems(ctx: AuthContext, orderId: string, itemIds: string[], nextStatus: Exclude<KitchenItemStatus, "NEW">) {
+    requirePermissions(ctx, PERMISSIONS.KITCHEN_ACCESS);
+    const order = await findScopedOrder(ctx, orderId);
+    if (["DRAFT", "CANCELLED", "VOIDED", "REFUNDED", "SERVED", "COMPLETED"].includes(order.status)) {
+      throw new BusinessRuleError("This order is no longer active in the kitchen.");
+    }
+
+    const selected = new Set(itemIds);
+    const selectedItems = order.items.filter((item) => selected.has(String(item._id)));
+    if (selectedItems.length !== selected.size) throw new NotFoundError("Kitchen item");
+
+    const fallbackStatus = (itemStatus: OrderStatus): KitchenItemStatus => {
+      if (itemStatus === "READY") return "READY";
+      if (itemStatus === "PREPARING") return "PREPARING";
+      return "NEW";
+    };
+    const allowedPrevious: Record<Exclude<KitchenItemStatus, "NEW">, KitchenItemStatus> = {
+      PREPARING: "NEW",
+      READY: "PREPARING",
+      COMPLETED: "READY",
+    };
+
+    for (const item of selectedItems) {
+      const current = item.kitchenStatus ?? fallbackStatus(order.status as OrderStatus);
+      if (current !== allowedPrevious[nextStatus]) {
+        throw new ConflictError(`This item is ${current.toLowerCase()} and cannot move directly to ${nextStatus.toLowerCase()}.`);
+      }
+      item.kitchenStatus = nextStatus;
+      if (nextStatus === "PREPARING") item.kitchenStartedAt = new Date();
+      if (nextStatus === "READY") item.kitchenReadyAt = new Date();
+      if (nextStatus === "COMPLETED") item.kitchenCompletedAt = new Date();
+    }
+
+    const itemStatuses = order.items.map((item) => item.kitchenStatus ?? fallbackStatus(order.status as OrderStatus));
+    const previousStatus = order.status as OrderStatus;
+    let derivedStatus: OrderStatus | null = null;
+    if (itemStatuses.every((status) => status === "COMPLETED")) derivedStatus = "SERVED";
+    else if (itemStatuses.every((status) => status === "READY" || status === "COMPLETED")) derivedStatus = "READY";
+    else if (itemStatuses.some((status) => status !== "NEW") && (previousStatus === "PLACED" || previousStatus === "CONFIRMED")) derivedStatus = "PREPARING";
+
+    if (derivedStatus && derivedStatus !== previousStatus && canTransition(previousStatus, derivedStatus)) {
+      if (derivedStatus === "PREPARING") {
+        for (const item of order.items) {
+          const product = await ProductRepository.findById(ctx.organizationId, String(item.productId));
+          if (!product) continue;
+          for (const line of product.recipe) {
+            await InventoryService.consumeForOrderItem({
+              organizationId: ctx.organizationId,
+              branchId: String(order.branchId),
+              orderId: String(order._id),
+              inventoryItemId: String(line.inventoryItemId),
+              quantity: line.quantity * item.quantity,
+              performedBy: ctx.userId,
+            });
+          }
+        }
+      }
+      order.status = derivedStatus;
+    }
+
+    order.updatedBy = ctx.userId as unknown as typeof order.updatedBy;
+    await order.save();
+    await AuditService.record({
+      organizationId: ctx.organizationId,
+      branchId: String(order.branchId),
+      actorId: ctx.userId,
+      action: "order.kitchen_items_updated",
+      entityType: "Order",
+      entityId: String(order._id),
+      before: { status: previousStatus },
+      after: { status: order.status, itemIds, kitchenStatus: nextStatus },
+    });
+
+    const eventName = STATUS_EVENT_MAP[order.status as OrderStatus];
+    if (eventName) {
+      const branchId = String(order.branchId);
+      const payload = { orderId: String(order._id), orderNumber: order.orderNumber, status: order.status, itemIds, kitchenStatus: nextStatus };
+      await publishEvent(eventName, branchChannel(branchId, "kitchen"), ctx.organizationId, branchId, payload);
+      await publishEvent(eventName, branchChannel(branchId, "display"), ctx.organizationId, branchId, payload);
+      await publishEvent(eventName, branchChannel(branchId, "pos"), ctx.organizationId, branchId, payload);
+    }
     return order;
   },
 

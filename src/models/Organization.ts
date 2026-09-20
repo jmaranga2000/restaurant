@@ -26,6 +26,10 @@ const organizationSchema = new Schema(
         enabled: { type: Boolean, default: true },
       }],
       kitchenStations: [{ type: String, trim: true }],
+      kitchenDelayAlertMinutes: { type: Number, default: 15, min: 1, max: 180 },
+      kitchenSoundEnabled: { type: Boolean, default: true },
+      kitchenNotificationsEnabled: { type: Boolean, default: true },
+      kitchenDisplayDensity: { type: String, enum: ["COMFORTABLE", "COMPACT"], default: "COMFORTABLE" },
     },
     receipt: {
       header: { type: String, trim: true, maxlength: 240 },

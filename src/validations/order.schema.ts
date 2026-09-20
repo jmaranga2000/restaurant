@@ -76,3 +76,9 @@ export const mergeHeldOrdersSchema = z.object({
   primaryOrderId: objectId,
   secondaryOrderId: objectId,
 }).refine((value) => value.primaryOrderId !== value.secondaryOrderId, "Choose two different held orders.");
+
+export const updateKitchenItemsSchema = z.object({
+  orderId: objectId,
+  itemIds: z.array(objectId).min(1, "Select at least one kitchen item.").max(50),
+  nextStatus: z.enum(["PREPARING", "READY", "COMPLETED"]),
+});

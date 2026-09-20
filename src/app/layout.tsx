@@ -3,6 +3,10 @@ import { PwaRegistration } from "@/components/ui/PwaRegistration";
 import { PwaInstallPrompt } from "@/components/ui/PwaInstallPrompt";
 import "./globals.css";
 
+// Dashboard routes read the active session and live operational data. Rendering
+// them per request avoids build-time attempts to access those private resources.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Restaurant OS",
   description: "Multi-branch restaurant management & POS platform",

@@ -6,6 +6,8 @@ import { OrderModel } from "@/models/Order";
 import { CategoryModel, ProductModel } from "@/models/Product";
 import { TableModel } from "@/models/Table";
 
+export const dynamic = "force-dynamic";
+
 /** Public, display-scoped feed. It contains only the information a guest TV needs. */
 export async function GET(_request: Request, { params }: { params: { displayId: string } }) {
   await connectToDatabase();

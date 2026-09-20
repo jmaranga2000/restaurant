@@ -21,6 +21,14 @@ const orderItemSchema = new Schema(
       enum: ["NEW", "PREPARING", "READY", "COMPLETED"],
       default: "NEW",
     },
+    kitchenStatus: {
+      type: String,
+      enum: ["NEW", "PREPARING", "READY", "COMPLETED"],
+      default: "NEW",
+    },
+    kitchenStartedAt: { type: Date },
+    kitchenReadyAt: { type: Date },
+    kitchenCompletedAt: { type: Date },
   },
   { _id: true }
 );
