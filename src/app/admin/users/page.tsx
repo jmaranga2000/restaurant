@@ -1,18 +1,19 @@
+import { inviteUserAction } from "@/actions/user.actions";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Input } from "@/components/ui/Input";
+import { PageHeading } from "@/components/ui/PageHeading";
 import { requireSession } from "@/lib/session";
 import { loadAuthContext } from "@/permissions/authorize";
-import { UserService } from "@/services/user.service";
 import { BranchService } from "@/services/branch.service";
-import { inviteUserAction } from "@/actions/user.actions";
+import { UserService } from "@/services/user.service";
 
 export default async function AdminUsersPage() {
   const session = await requireSession();
   const ctx = await loadAuthContext(session);
-
-  const [users, roles, branches] = await Promise.all([
-    UserService.list(ctx),
-    UserService.listRoles(ctx),
-    BranchService.list(ctx),
-  ]);
+  const [users, roles, branches] = await Promise.all([UserService.list(ctx), UserService.listRoles(ctx), BranchService.list(ctx)]);
 
   async function handleInvite(formData: FormData) {
     "use server";
@@ -20,68 +21,11 @@ export default async function AdminUsersPage() {
   }
 
   return (
-    <div className="p-8 max-w-3xl">
-      <h1 className="font-display text-2xl mb-6">Users & roles</h1>
-
-      <ul className="divide-y divide-ink-line/10 mb-8">
-        {users.map((u) => (
-          <li key={String(u._id)} className="py-3 flex items-center justify-between text-sm">
-            <div>
-              <p className="font-medium">{u.name}</p>
-              <p className="text-ink/40 text-xs">{u.email}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm">{(u.roleId as unknown as { name?: string })?.name ?? "—"}</p>
-              <p className={`text-xs ${u.isActive ? "text-status-ready" : "text-ink/40"}`}>
-                {u.isActive ? "Active" : "Deactivated"}
-              </p>
-            </div>
-          </li>
-        ))}
-        {users.length === 0 && <li className="py-3 text-ink/40 text-sm">No users yet.</li>}
-      </ul>
-
-      <div className="border border-ink-line/20 rounded-lg p-5 bg-white">
-        <h2 className="font-medium mb-4">Invite a user</h2>
-        <form action={handleInvite} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <input name="name" required placeholder="Full name" className="border border-ink-line/30 rounded px-3 py-2 text-sm" />
-            <input name="email" type="email" required placeholder="Email" className="border border-ink-line/30 rounded px-3 py-2 text-sm" />
-          </div>
-          <select name="roleId" required className="w-full border border-ink-line/30 rounded px-3 py-2 text-sm">
-            <option value="">Select a role…</option>
-            {roles.map((r) => (
-              <option key={String(r._id)} value={String(r._id)}>
-                {r.name}
-              </option>
-            ))}
-          </select>
-          <fieldset className="border border-ink-line/20 rounded p-3">
-            <legend className="text-xs text-ink/50 px-1">
-              Branch access (leave all unchecked for org-wide access)
-            </legend>
-            <div className="grid grid-cols-2 gap-2 mt-1">
-              {branches.map((b) => (
-                <label key={String(b._id)} className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" name="assignedBranchIds" value={String(b._id)} />
-                  {b.name}
-                </label>
-              ))}
-              {branches.length === 0 && <p className="text-ink/40 text-sm">Add a branch first.</p>}
-            </div>
-          </fieldset>
-          <input
-            name="temporaryPassword"
-            type="text"
-            required
-            minLength={8}
-            placeholder="Temporary password (share with the new user directly)"
-            className="w-full border border-ink-line/30 rounded px-3 py-2 text-sm"
-          />
-          <button type="submit" className="w-full bg-ember hover:bg-ember-dark text-white rounded py-2 text-sm font-medium">
-            Send invite
-          </button>
-        </form>
+    <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+      <PageHeading eyebrow="Restaurant administration" title="Users and roles" description="Control who can access each location and what they can do." />
+      <div className="mt-6 grid gap-4 xl:grid-cols-5">
+        <Card className="overflow-hidden xl:col-span-3"><div className="border-b border-ink-line/15 p-5 dark:border-ink-line"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600 dark:text-indigo-300">Team access</p><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Your users</h2></div>{users.length === 0 ? <div className="p-5"><EmptyState icon="◎" title="No users yet" description="Invite a teammate to give them access to the right restaurant tools." /></div> : <div className="divide-y divide-ink-line/10 dark:divide-ink-line">{users.map((user) => <div key={String(user._id)} className="flex items-center gap-4 px-5 py-4"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50 text-xs font-semibold text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-200">{user.name.slice(0, 2).toUpperCase()}</span><span className="min-w-0 flex-1"><b className="block truncate text-sm text-ink dark:text-paper">{user.name}</b><small className="mt-1 block truncate text-xs text-ink/50 dark:text-paper/55">{user.email}</small></span><span className="hidden text-right sm:block"><small className="block text-xs text-ink/55 dark:text-paper/60">{(user.roleId as unknown as { name?: string })?.name ?? "No role"}</small><Badge tone={user.isActive ? "success" : "neutral"} className="mt-1">{user.isActive ? "Active" : "Deactivated"}</Badge></span></div>)}</div>}</Card>
+        <Card className="p-5 xl:col-span-2"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600 dark:text-indigo-300">Team member</p><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Invite a user</h2><form action={handleInvite} className="mt-5 space-y-3"><Input name="name" required placeholder="Full name" /><Input name="email" type="email" required placeholder="Email address" /><select name="roleId" required className="w-full rounded-lg border border-ink-line/20 bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-ink-line dark:bg-ink-soft dark:text-paper"><option value="">Select a role…</option>{roles.map((role) => <option key={String(role._id)} value={String(role._id)}>{role.name}</option>)}</select><fieldset className="rounded-lg border border-ink-line/15 p-3 dark:border-ink-line"><legend className="px-1 text-xs text-ink/55 dark:text-paper/60">Branch access</legend><p className="mb-3 text-xs text-ink/45 dark:text-paper/50">Leave unselected for organization-wide access.</p><div className="space-y-2">{branches.map((branch) => <label key={String(branch._id)} className="flex items-center gap-2 text-sm text-ink/70 dark:text-paper/75"><input type="checkbox" name="assignedBranchIds" value={String(branch._id)} className="h-4 w-4 accent-indigo-600" />{branch.name}</label>)}{branches.length === 0 ? <p className="text-sm text-ink/50 dark:text-paper/55">Add a branch first.</p> : null}</div></fieldset><Input name="temporaryPassword" required minLength={8} type="text" placeholder="Temporary password" /><Button type="submit" className="w-full">Send invite</Button></form></Card>
       </div>
     </div>
   );
