@@ -8,6 +8,14 @@
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 
+html {
+  background: theme("colors.paper.DEFAULT");
+}
+
+html.dark {
+  background: theme("colors.ink.DEFAULT");
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;

@@ -8,6 +8,7 @@ import type { Config } from "tailwindcss";
 //   status appears (POS, KDS, customer display, dashboard) so staff build
 //   muscle memory instead of relearning color per screen.
 const config: Config = {
+  darkMode: "class",
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
