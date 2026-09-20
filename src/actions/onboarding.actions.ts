@@ -12,6 +12,7 @@ import { loadAuthContext, requirePermissions } from "@/permissions/authorize";
 import { PERMISSIONS } from "@/types/permissions";
 import { onboardingDraftSchema, onboardingSchema } from "@/validations/onboarding.schema";
 import { toClientError, ValidationError } from "@/lib/errors";
+import { uploadOrganizationLogo } from "@/lib/cloudinary";
 import type { ActionResult } from "@/actions/auth.actions";
 
 const paymentLabels = { CASH: "Cash", MPESA: "M-Pesa", CARD: "Card", BANK: "Bank transfer", OTHER: "Other" } as const;
@@ -34,13 +35,10 @@ function payloadFrom(formData: FormData) {
   };
 }
 
-async function logoDataUrl(formData: FormData) {
+function logoFile(formData: FormData) {
   const logo = formData.get("logo");
   if (!(logo instanceof File) || logo.size === 0) return undefined;
-  if (!logo.type.startsWith("image/")) throw new ValidationError("Upload an image file for the restaurant logo.");
-  if (logo.size > 750_000) throw new ValidationError("Keep the restaurant logo under 750 KB.");
-  const buffer = Buffer.from(await logo.arrayBuffer());
-  return `data:${logo.type};base64,${buffer.toString("base64")}`;
+  return logo;
 }
 
 async function saveOnboarding(formData: FormData, complete: boolean): Promise<ActionResult<{ redirectTo: string }>> {
@@ -50,7 +48,7 @@ async function saveOnboarding(formData: FormData, complete: boolean): Promise<Ac
     requirePermissions(ctx, PERMISSIONS.SETTINGS_MANAGE);
     const raw = payloadFrom(formData);
     const parsed = complete ? onboardingSchema.parse(raw) : onboardingDraftSchema.parse(raw);
-    const logoUrl = await logoDataUrl(formData);
+    const logo = logoFile(formData);
 
     await connectToDatabase();
     const organization = await OrganizationModel.findById(ctx.organizationId);
@@ -65,11 +63,15 @@ async function saveOnboarding(formData: FormData, complete: boolean): Promise<Ac
     if (parsed.country !== undefined) organization.country = parsed.country || undefined;
     if (parsed.currency) organization.defaultCurrency = parsed.currency;
     if (parsed.timezone) organization.defaultTimezone = parsed.timezone;
-    if (logoUrl) organization.logoUrl = logoUrl;
+    if (logo) {
+      const uploadedLogo = await uploadOrganizationLogo(logo, String(organization._id));
+      organization.logoUrl = uploadedLogo.secureUrl;
+      organization.logoPublicId = uploadedLogo.publicId;
+    }
 
     if (complete) {
       const completed = onboardingSchema.parse(raw);
-      organization.settings = {
+      organization.set("settings", {
         taxRatePercent: completed.taxRatePercent,
         serviceChargePercent: completed.serviceChargePercent,
         taxLabel: completed.taxLabel || "VAT",
@@ -77,7 +79,7 @@ async function saveOnboarding(formData: FormData, complete: boolean): Promise<Ac
         serviceTypes: completed.serviceTypes,
         paymentMethods: completed.paymentMethods.map((code) => ({ code, label: paymentLabels[code], enabled: true })),
         kitchenStations: organization.settings?.kitchenStations?.length ? organization.settings.kitchenStations : ["Kitchen"],
-      };
+      });
       organization.receipt = { header: completed.receiptHeader || undefined, footer: completed.receiptFooter || undefined, prefix: completed.receiptPrefix || undefined };
       organization.businessRegistration = { legalName: completed.legalName || undefined, registrationNumber: completed.registrationNumber || undefined, taxNumber: completed.taxNumber || undefined };
       organization.subscription ??= { plan: "TRIAL", status: "TRIAL", enabledModules: [] };
@@ -87,7 +89,9 @@ async function saveOnboarding(formData: FormData, complete: boolean): Promise<Ac
       const openingHours = Array.from({ length: 7 }, (_, dayOfWeek) => ({ dayOfWeek, opensAt: completed.opensAt, closesAt: completed.closesAt }));
       if (branch) {
         branch.name = completed.branchName; branch.address = completed.branchAddress || undefined; branch.phone = completed.branchPhone || undefined;
-        branch.city = completed.city || undefined; branch.country = completed.country || undefined; branch.timezone = completed.timezone; branch.openingHours = openingHours; branch.serviceTypes = completed.serviceTypes;
+        branch.city = completed.city || undefined; branch.country = completed.country || undefined; branch.timezone = completed.timezone;
+        branch.set("openingHours", openingHours);
+        branch.set("serviceTypes", completed.serviceTypes);
         await branch.save();
       } else {
         branch = await BranchModel.create({ organizationId: organization._id, name: completed.branchName, code: completed.branchCode, address: completed.branchAddress || undefined, phone: completed.branchPhone || undefined, city: completed.city || undefined, country: completed.country || undefined, timezone: completed.timezone, openingHours, serviceTypes: completed.serviceTypes, isActive: true, createdBy: ctx.userId });

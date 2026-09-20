@@ -17,11 +17,11 @@ export default async function OnboardingPage({ searchParams }: { searchParams?: 
   if (organization.onboarding?.status === "COMPLETED" && searchParams?.edit !== "1") redirect("/workspace");
 
   return <OnboardingWizard error={searchParams?.error} initial={{
-    name: organization.name, description: organization.description, phone: organization.phone, email: organization.email, address: organization.address, city: organization.city, country: organization.country,
-    currency: organization.defaultCurrency, timezone: organization.defaultTimezone, logoUrl: organization.logoUrl, taxRatePercent: organization.settings?.taxRatePercent, serviceChargePercent: organization.settings?.serviceChargePercent,
-    taxLabel: organization.settings?.taxLabel, pricesIncludeTax: organization.settings?.pricesIncludeTax, receiptHeader: organization.receipt?.header, receiptFooter: organization.receipt?.footer, receiptPrefix: organization.receipt?.prefix,
-    legalName: organization.businessRegistration?.legalName, registrationNumber: organization.businessRegistration?.registrationNumber, taxNumber: organization.businessRegistration?.taxNumber,
-    serviceTypes: organization.settings?.serviceTypes, paymentMethods: organization.settings?.paymentMethods?.filter((method) => method.enabled).map((method) => method.code), branchName: branch?.name, branchCode: branch?.code,
-    branchAddress: branch?.address, branchPhone: branch?.phone, opensAt: branch?.openingHours?.[0]?.opensAt, closesAt: branch?.openingHours?.[0]?.closesAt,
+    name: organization.name, description: organization.description ?? undefined, phone: organization.phone ?? undefined, email: organization.email ?? undefined, address: organization.address ?? undefined, city: organization.city ?? undefined, country: organization.country ?? undefined,
+    currency: organization.defaultCurrency, timezone: organization.defaultTimezone, logoUrl: organization.logoUrl ?? undefined, taxRatePercent: organization.settings?.taxRatePercent ?? undefined, serviceChargePercent: organization.settings?.serviceChargePercent ?? undefined,
+    taxLabel: organization.settings?.taxLabel ?? undefined, pricesIncludeTax: organization.settings?.pricesIncludeTax ?? undefined, receiptHeader: organization.receipt?.header ?? undefined, receiptFooter: organization.receipt?.footer ?? undefined, receiptPrefix: organization.receipt?.prefix ?? undefined,
+    legalName: organization.businessRegistration?.legalName ?? undefined, registrationNumber: organization.businessRegistration?.registrationNumber ?? undefined, taxNumber: organization.businessRegistration?.taxNumber ?? undefined,
+    serviceTypes: organization.settings?.serviceTypes?.flatMap((type) => type ? [type] : []), paymentMethods: organization.settings?.paymentMethods?.flatMap((method) => method.enabled && method.code ? [method.code] : []), branchName: branch?.name ?? undefined, branchCode: branch?.code ?? undefined,
+    branchAddress: branch?.address ?? undefined, branchPhone: branch?.phone ?? undefined, opensAt: branch?.openingHours?.[0]?.opensAt ?? undefined, closesAt: branch?.openingHours?.[0]?.closesAt ?? undefined,
   }} />;
 }

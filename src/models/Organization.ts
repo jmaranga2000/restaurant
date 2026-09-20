@@ -6,6 +6,7 @@ const organizationSchema = new Schema(
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     description: { type: String, trim: true, maxlength: 600 },
     logoUrl: { type: String },
+    logoPublicId: { type: String },
     phone: { type: String, trim: true },
     email: { type: String, lowercase: true, trim: true },
     address: { type: String, trim: true },

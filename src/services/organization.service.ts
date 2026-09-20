@@ -33,9 +33,19 @@ export const OrganizationService = {
     if (input.name !== undefined) org.name = input.name;
     if (input.defaultCurrency !== undefined) org.defaultCurrency = input.defaultCurrency;
     if (input.defaultTimezone !== undefined) org.defaultTimezone = input.defaultTimezone;
-    org.settings ??= { taxRatePercent: 0, serviceChargePercent: 0 };
-    if (input.taxRatePercent !== undefined) org.settings.taxRatePercent = input.taxRatePercent;
-    if (input.serviceChargePercent !== undefined) org.settings.serviceChargePercent = input.serviceChargePercent;
+    if (!org.settings) {
+      org.set("settings", {
+        taxRatePercent: 0,
+        serviceChargePercent: 0,
+        taxLabel: "VAT",
+        pricesIncludeTax: false,
+        serviceTypes: ["DINE_IN"],
+        paymentMethods: [],
+        kitchenStations: ["Kitchen"],
+      });
+    }
+    if (input.taxRatePercent !== undefined) org.set("settings.taxRatePercent", input.taxRatePercent);
+    if (input.serviceChargePercent !== undefined) org.set("settings.serviceChargePercent", input.serviceChargePercent);
     org.updatedBy = ctx.userId as unknown as typeof org.updatedBy;
     await org.save();
 

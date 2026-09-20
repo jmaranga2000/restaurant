@@ -20,5 +20,5 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
   const plan = normalizeSubscriptionPlan(organization.subscription?.plan);
   const navigation = groupedWorkspaceModules(ctx.permissions, plan, organization.subscription?.enabledModules);
 
-  return <RestaurantWorkspaceShell organizationName={organization.name} logoUrl={organization.logoUrl} branches={branchDocs.map((branch) => ({ id: String(branch._id), name: branch.name }))} activeBranchId={ctx.activeBranchId} allowAllBranches={organizationWide} navigation={navigation} plan={plan}>{children}</RestaurantWorkspaceShell>;
+  return <RestaurantWorkspaceShell organizationName={organization.name} logoUrl={organization.logoUrl ?? undefined} branches={branchDocs.map((branch) => ({ id: String(branch._id), name: branch.name }))} activeBranchId={ctx.activeBranchId} allowAllBranches={organizationWide} navigation={navigation} plan={plan}>{children}</RestaurantWorkspaceShell>;
 }

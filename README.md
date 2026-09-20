@@ -79,10 +79,14 @@ database on every request.
   and displays currently poll every 5–8s — swap the `setInterval` for a
   channel subscription once a provider is wired in, no other code changes
   needed.
-- **Email, Cloudinary, Upstash, QR, PDF**: listed in `.env.example` and
-  `package.json`, no service wrapper written yet (see "Suggested next
-  slice"). User invites currently take a typed temporary password instead
-  of emailing a set-password link.
+- **Cloudinary media storage**: restaurant logos uploaded during onboarding
+  are sent through the signed server-side Cloudinary API and stored as secure
+  delivery URLs. Add `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
+  `CLOUDINARY_API_SECRET` to `.env.local` before uploading images. Product
+  images and digital-signage assets can use the same wrapper next.
+- **Email, Upstash, QR, PDF**: listed in `.env.example` and `package.json`;
+  their provider wrappers are still pending. User invites currently take a
+  typed temporary password instead of emailing a set-password link.
 - **Digital signage content** on the customer display is a hardcoded
   sample array, standing in for the Signage module.
 - **Purchasing**: `Supplier` model exists; purchase orders/goods-received
