@@ -12,6 +12,8 @@ const portalLinks = [
   { eyebrow: "For platform staff", title: "Oversee the network", description: "Review restaurants, manage account health, and keep the Restaurant OS platform running smoothly.", href: "/super-admin/login", action: "Super Admin login", number: "02", tone: "border border-ink-line bg-ink-soft text-paper hover:bg-ink-line" },
 ];
 
+const heroImage = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=2400&q=90";
+
 function ArrowUpRight({ className = "" }: { className?: string }) {
   return <span aria-hidden="true" className={`inline-block text-lg leading-none ${className}`}>↗</span>;
 }
@@ -39,31 +41,40 @@ export default function HomePage() {
         </div>
       </header>
 
-      <section className="mx-auto grid max-w-7xl gap-12 px-6 pb-20 pt-10 sm:px-10 lg:grid-cols-12 lg:gap-10 lg:px-14 lg:pb-28 lg:pt-16">
+      <section className="relative isolate mt-2 overflow-hidden bg-ink text-paper">
+        <div
+          className="absolute inset-0 -z-20 bg-cover bg-center"
+          style={{ backgroundImage: `url(${heroImage})` }}
+          role="img"
+          aria-label="Fine dining dish in an elegant restaurant"
+        />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-ink via-ink/90 to-ink/55" />
+        <div className="absolute inset-0 -z-10 bg-ink/25" />
+        <div className="mx-auto grid max-w-7xl gap-12 px-6 pb-20 pt-14 sm:px-10 lg:grid-cols-12 lg:gap-10 lg:px-14 lg:pb-28 lg:pt-20">
         <div className="flex flex-col justify-between lg:col-span-6">
           <div>
-            <p className="mb-6 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.18em] text-ember">
+            <p className="mb-6 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.18em] text-ember-light">
               <span className="h-px w-9 bg-ember" /> Restaurant operations platform
             </p>
             <h1 className="max-w-2xl font-display text-5xl leading-[0.91] tracking-[-0.045em] sm:text-6xl lg:text-7xl xl:text-[5.4rem]">
-              Make every shift feel <span className="italic text-ember">under control.</span>
+              Make every shift feel <span className="italic text-ember-light">under control.</span>
             </h1>
-            <p className="mt-7 max-w-xl text-base leading-7 text-ink/65 dark:text-paper/60 sm:text-lg sm:leading-8">
+            <p className="mt-7 max-w-xl text-base leading-7 text-paper/75 sm:text-lg sm:leading-8">
               Restaurant OS connects the counter, the kitchen, the stock room, and head office — so your team can focus on the guests in front of them.
             </p>
           </div>
 
           <div className="mt-10 flex flex-col gap-5 sm:flex-row sm:items-center">
-            <Link href="/register" className="group inline-flex items-center justify-center gap-3 bg-ink px-5 py-3.5 text-sm font-medium text-paper transition-colors hover:bg-ink-soft dark:bg-paper dark:text-ink dark:hover:bg-paper-dim sm:w-auto">
+            <Link href="/register" className="group inline-flex items-center justify-center gap-3 bg-ember px-5 py-3.5 text-sm font-medium text-white transition-colors hover:bg-ember-dark sm:w-auto">
               Start your restaurant <ArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
-            <p className="font-mono text-[10px] uppercase tracking-[0.13em] text-ink/45 dark:text-paper/45">Built for one location or one hundred</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.13em] text-paper/55">Built for one location or one hundred</p>
           </div>
         </div>
 
         <div className="relative lg:col-span-6">
           <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-ember/15 blur-3xl" />
-          <div className="relative overflow-hidden bg-ink p-5 text-paper shadow-[10px_12px_0_0_#e0a56f] sm:p-7">
+          <div className="relative overflow-hidden border border-paper/15 bg-ink/90 p-5 text-paper shadow-[10px_12px_0_0_#e0a56f] backdrop-blur-sm sm:p-7">
             <div className="flex items-center justify-between border-b border-paper/15 pb-5">
               <div className="flex items-center gap-3">
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ember font-display text-sm">R</span>
@@ -119,6 +130,7 @@ export default function HomePage() {
               <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ember-light">Everything in motion</span>
             </div>
           </div>
+        </div>
         </div>
       </section>
 
