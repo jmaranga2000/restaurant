@@ -14,6 +14,7 @@ export const ProductRepository = {
       organizationId,
       _id: { $in: productIds },
       isActive: true,
+      isAvailable: { $ne: false },
     }).lean();
   },
 
@@ -22,6 +23,7 @@ export const ProductRepository = {
     return ProductModel.find({
       organizationId,
       isActive: true,
+      isAvailable: { $ne: false },
       ...(categoryId ? { categoryId } : {}),
     })
       .sort({ name: 1 })

@@ -34,6 +34,7 @@ const orderSchema = new Schema(
     status: { type: String, enum: ORDER_STATUSES, required: true, default: "DRAFT" },
     tableId: { type: Schema.Types.ObjectId, ref: "Table" },
     customerId: { type: Schema.Types.ObjectId, ref: "Customer" },
+    notes: { type: String, trim: true },
     items: { type: [orderItemSchema], default: [] },
 
     subtotalMinor: { type: Number, required: true, default: 0 },
@@ -45,9 +46,12 @@ const orderSchema = new Schema(
 
     payments: [
       {
-        method: { type: String, enum: ["CASH", "CARD", "MOBILE_MONEY", "BANK", "EXTERNAL"], required: true },
+        // MOBILE_MONEY and EXTERNAL remain accepted for historic records;
+        // new POS activity uses the consistent restaurant-facing codes below.
+        method: { type: String, enum: ["CASH", "MPESA", "CARD", "BANK", "OTHER", "MOBILE_MONEY", "EXTERNAL"], required: true },
         amountMinor: { type: Number, required: true },
         reference: { type: String },
+        note: { type: String, trim: true },
         receivedAt: { type: Date, default: Date.now },
       },
     ],

@@ -53,6 +53,29 @@ export async function uploadOrganizationLogo(file: File, organizationId: string)
   return { publicId: result.public_id, secureUrl: result.secure_url, width: result.width, height: result.height };
 }
 
+/** Uploads a menu image into the owning restaurant's isolated media folder. */
+export async function uploadMenuItemImage(file: File, organizationId: string, productId: string): Promise<UploadedImage> {
+  validateImage(file, "menu item image");
+  const bytes = Buffer.from(await file.arrayBuffer());
+  const dataUri = `data:${file.type};base64,${bytes.toString("base64")}`;
+  const result = await client().uploader.upload(dataUri, {
+    asset_folder: `restaurant-os/organizations/${organizationId}/menu`,
+    public_id: productId,
+    overwrite: true,
+    invalidate: true,
+    resource_type: "image",
+    transformation: [{ width: 1200, height: 900, crop: "limit" }, { fetch_format: "auto", quality: "auto" }],
+  });
+  return { publicId: result.public_id, secureUrl: result.secure_url, width: result.width, height: result.height };
+}
+
+/** A public delivery URL is derived server-side, keeping Cloudinary credentials private. */
+export function cloudinaryImageUrl(publicId?: string | null): string | undefined {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  if (!cloudName || !publicId) return undefined;
+  return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/${publicId}`;
+}
+
 export function isCloudinaryConfigured() {
   return Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
 }

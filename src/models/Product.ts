@@ -64,15 +64,21 @@ const productSchema = new Schema(
     name: { type: String, required: true, trim: true },
     description: { type: String, trim: true },
     imagePublicId: { type: String }, // Cloudinary public_id, not a raw URL
+    sku: { type: String, trim: true },
+    barcode: { type: String, trim: true },
+    taxRatePercent: { type: Number, min: 0, max: 100 },
     variants: { type: [variantSchema], default: [] },
     modifierGroups: { type: [modifierGroupSchema], default: [] },
     recipe: { type: [recipeLineSchema], default: [] },
     kitchenStation: { type: String }, // e.g. "grill", "cold-station", "bar"
     isActive: { type: Boolean, default: true },
+    isAvailable: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
 productSchema.index({ organizationId: 1, categoryId: 1, isActive: 1 });
+productSchema.index({ organizationId: 1, sku: 1 }, { sparse: true });
+productSchema.index({ organizationId: 1, barcode: 1 }, { sparse: true });
 productSchema.index({ organizationId: 1, name: "text" });
 
 export type Product = InferSchemaType<typeof productSchema>;

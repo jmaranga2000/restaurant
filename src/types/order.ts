@@ -19,6 +19,14 @@ export const ORDER_TYPES = ["DINE_IN", "TAKEAWAY", "PICKUP", "DELIVERY"] as cons
 export type OrderType = (typeof ORDER_TYPES)[number];
 
 /**
+ * These are deliberately restaurant-facing codes. The payment gateway or
+ * processor behind a method may change, but a cashier should always see the
+ * payment language configured by their restaurant.
+ */
+export const PAYMENT_METHOD_CODES = ["CASH", "MPESA", "CARD", "BANK", "OTHER"] as const;
+export type PaymentMethodCode = (typeof PAYMENT_METHOD_CODES)[number];
+
+/**
  * The single source of truth for which status transitions are legal.
  * Nothing in the app should move an order's status without going through
  * OrderService.transition(), which consults this map — see section 9 of the

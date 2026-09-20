@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 
 const NAV = [
   { href: "/admin", label: "Overview", icon: "▥" },
+  { href: "/admin/menu", label: "Menu studio", icon: "≡" },
   { href: "/admin/branches", label: "Branches", icon: "⌂" },
   { href: "/admin/users", label: "Users & roles", icon: "◎" },
   { href: "/admin/settings", label: "Settings", icon: "⚙" },
