@@ -77,60 +77,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <section aria-label="Restaurant OS live service preview" className="overflow-hidden rounded-xl border border-paper/15 bg-ink/80 p-4 shadow-[0_24px_70px_rgba(0,0,0,.35)] backdrop-blur-md sm:p-5">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-paper/10 pb-4">
-                <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-ember text-lg text-white">R</span>
-                  <div>
-                    <p className="text-sm font-semibold">Riverside Kitchen</p>
-                    <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-paper/45">Westlands · Live service</p>
-                  </div>
-                </div>
-                <Badge tone="success" className="bg-emerald-400/15 text-emerald-200"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Online</Badge>
-              </div>
-
-              <div className="mt-4 grid gap-4 sm:grid-cols-[1.08fr_.92fr]">
-                <div className="rounded-lg border border-paper/10 bg-paper/[.05] p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-paper/45">Service queue</p>
-                      <p className="mt-2 font-display text-4xl">18</p>
-                    </div>
-                    <Badge tone="warning" className="bg-ember/20 text-ember-light">4 new</Badge>
-                  </div>
-                  <div className="mt-5 space-y-2.5">
-                    {[
-                      ["#1048", "Table 08", "Preparing", "bg-amber-400"],
-                      ["#1049", "Table 04", "Ready", "bg-emerald-400"],
-                      ["#1050", "Takeaway", "Waiting", "bg-indigo-400"],
-                    ].map(([order, place, status, tone]) => (
-                      <div key={order} className="flex items-center justify-between gap-2 border-t border-paper/10 pt-2.5 text-xs">
-                        <span className="min-w-0 truncate text-paper/85"><span className="mr-2 font-mono text-[10px] text-paper/40">{order}</span>{place}</span>
-                        <span className="flex shrink-0 items-center gap-1.5 text-[10px] text-paper/60"><span className={`h-1.5 w-1.5 rounded-full ${tone}`} />{status}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex min-h-[215px] flex-col justify-between rounded-lg bg-ember p-4 text-white">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/65">Today’s sales</p>
-                    <p className="mt-2 font-display text-4xl tracking-tight">KSh 284K</p>
-                    <p className="mt-1 text-xs leading-5 text-white/75">426 orders across your active branches</p>
-                  </div>
-                  <div>
-                    <div className="flex h-12 items-end gap-1.5">
-                      {[34, 52, 44, 67, 58, 80, 65, 94, 76, 100].map((height, index) => <span key={index} className="flex-1 rounded-t-sm bg-white/80" style={{ height: `${height}%` }} />)}
-                    </div>
-                    <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.13em] text-white/65">Up 12.8% this week</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-3 gap-2 border-t border-paper/10 pt-4 text-center">
-                {["3 branches", "7 low-stock", "14 online"].map((item) => <span key={item} className="rounded-md bg-paper/[.05] px-2 py-2 text-[10px] font-medium text-paper/65">{item}</span>)}
-              </div>
-            </section>
+           
           </div>
         </section>
 
