@@ -13,6 +13,7 @@ import { PERMISSIONS } from "@/types/permissions";
 import { onboardingDraftSchema, onboardingSchema } from "@/validations/onboarding.schema";
 import { toClientError, ValidationError } from "@/lib/errors";
 import { uploadOrganizationLogo } from "@/lib/cloudinary";
+import { suggestBranchCode } from "@/lib/branch-code";
 import type { ActionResult } from "@/actions/auth.actions";
 
 const paymentLabels = { CASH: "Cash", MPESA: "M-Pesa", CARD: "Card", BANK: "Bank transfer", OTHER: "Other" } as const;
@@ -47,6 +48,7 @@ async function saveOnboarding(formData: FormData, complete: boolean): Promise<Ac
     const ctx = await loadAuthContext(session);
     requirePermissions(ctx, PERMISSIONS.SETTINGS_MANAGE);
     const raw = payloadFrom(formData);
+    raw.branchCode = (raw.branchCode.trim() || suggestBranchCode(raw.restaurantName, raw.branchName)).toUpperCase();
     const parsed = complete ? onboardingSchema.parse(raw) : onboardingDraftSchema.parse(raw);
     const logo = logoFile(formData);
 

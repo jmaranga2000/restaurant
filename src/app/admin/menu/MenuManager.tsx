@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { PageHeading } from "@/components/ui/PageHeading";
+import { menuSkuForSequence, suggestedMenuBarcode } from "@/lib/menu-identifiers";
 
 type Variant = { id?: string; name: string; priceMinor: number; isDefault: boolean };
 type Modifier = { id?: string; name: string; priceMinor: number };
@@ -21,6 +22,8 @@ const money = (minor: number) => new Intl.NumberFormat("en-KE", { style: "curren
 export function MenuManager({ categories, items }: { categories: { id: string; name: string }[]; items: MenuItem[] }) {
   const router = useRouter();
   const [draft, setDraft] = useState<Draft>(() => emptyDraft(categories[0]?.id));
+  const [autoSku, setAutoSku] = useState(true);
+  const [autoBarcode, setAutoBarcode] = useState(true);
   const [modifierTexts, setModifierTexts] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ kind: "success" | "error"; message: string } | null>(null);
@@ -31,15 +34,34 @@ export function MenuManager({ categories, items }: { categories: { id: string; n
   const modifierCount = items.reduce((sum, item) => sum + item.modifierGroups.length, 0);
   const filteredItems = useMemo(() => items.filter((item) => `${item.name} ${item.category} ${item.sku}`.toLowerCase().includes(query.trim().toLowerCase())), [items, query]);
 
+  function suggestedIdentifiers(name: string, categoryId: string) {
+    const category = categories.find((entry) => entry.id === categoryId)?.name ?? "Menu";
+    return { sku: menuSkuForSequence(name, category, 1), barcode: suggestedMenuBarcode(name, category) };
+  }
   function reset() {
-    setDraft(emptyDraft(categories[0]?.id)); setModifierTexts([]); setFormKey((key) => key + 1); setNotice(null);
+    setDraft(emptyDraft(categories[0]?.id)); setAutoSku(true); setAutoBarcode(true); setModifierTexts([]); setFormKey((key) => key + 1); setNotice(null);
   }
   function edit(item: MenuItem) {
     setDraft({ ...item, variants: item.variants.map((variant) => ({ ...variant })), modifierGroups: item.modifierGroups.map((group) => ({ ...group, options: group.options.map((option) => ({ ...option })) })) });
     setModifierTexts(item.modifierGroups.map((group) => group.options.map((option) => `${option.name}:${option.priceMinor / 100}`).join(", ")));
-    setFormKey((key) => key + 1); setNotice(null); window.scrollTo({ top: 0, behavior: "smooth" });
+    setAutoSku(false); setAutoBarcode(false); setFormKey((key) => key + 1); setNotice(null); window.scrollTo({ top: 0, behavior: "smooth" });
   }
-  function updateDraft(field: keyof Draft, value: unknown) { setDraft((current) => ({ ...current, [field]: value })); }
+  function updateDraft(field: keyof Draft, value: unknown) {
+    setDraft((current) => {
+      const next = { ...current, [field]: value };
+      if (field !== "name" && field !== "categoryId") return next;
+      const identifiers = suggestedIdentifiers(
+        field === "name" ? String(value) : current.name,
+        field === "categoryId" ? String(value) : current.categoryId,
+      );
+      return { ...next, ...(autoSku ? { sku: identifiers.sku } : {}), ...(autoBarcode ? { barcode: identifiers.barcode } : {}) };
+    });
+  }
+  function regenerateIdentifiers() {
+    const identifiers = suggestedIdentifiers(draft.name, draft.categoryId);
+    setAutoSku(true); setAutoBarcode(true);
+    setDraft((current) => ({ ...current, ...identifiers }));
+  }
   function updateVariant(index: number, update: Partial<Variant>) { setDraft((current) => ({ ...current, variants: current.variants.map((variant, position) => position === index ? { ...variant, ...update } : variant) })); }
   function setDefaultVariant(index: number) { setDraft((current) => ({ ...current, variants: current.variants.map((variant, position) => ({ ...variant, isDefault: position === index })) })); }
   function updateModifierGroup(index: number, update: Partial<ModifierGroup>) { setDraft((current) => ({ ...current, modifierGroups: current.modifierGroups.map((group, position) => position === index ? { ...group, ...update } : group) })); }
@@ -63,7 +85,7 @@ export function MenuManager({ categories, items }: { categories: { id: string; n
     setBusy(true); setNotice(null);
     const form = new FormData(event.currentTarget);
     const modifierGroups = draft.modifierGroups.map((group, index) => ({ ...group, options: parseOptions(modifierTexts[index] ?? "") }));
-    form.set("id", draft.id ?? ""); form.set("variants", JSON.stringify(draft.variants)); form.set("modifierGroups", JSON.stringify(modifierGroups)); form.set("isAvailable", String(draft.isAvailable));
+    form.set("id", draft.id ?? ""); form.set("variants", JSON.stringify(draft.variants)); form.set("modifierGroups", JSON.stringify(modifierGroups)); form.set("isAvailable", String(draft.isAvailable)); form.set("autoSku", String(autoSku && !draft.id)); form.set("autoBarcode", String(autoBarcode && !draft.id));
     const result = await saveMenuItemAction(form); setBusy(false);
     if (!result.ok) return setNotice({ kind: "error", message: result.error.message });
     setNotice({ kind: "success", message: `${draft.name || "Menu item"} is now saved and available to POS and the customer display.` }); reset(); router.refresh();
@@ -79,7 +101,8 @@ export function MenuManager({ categories, items }: { categories: { id: string; n
           <input type="hidden" name="id" value={draft.id ?? ""} />
           <div className="grid gap-4 sm:grid-cols-2"><Field label="Item name" required><Input name="name" value={draft.name} onChange={(event) => updateDraft("name", event.target.value)} placeholder="Classic beef burger" required /></Field><Field label="Category" required><select name="categoryId" value={draft.categoryId} onChange={(event) => updateDraft("categoryId", event.target.value)} required className="menu-select"><option value="">Choose category</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></Field><Field label="Kitchen station"><Input name="kitchenStation" value={draft.kitchenStation} onChange={(event) => updateDraft("kitchenStation", event.target.value)} placeholder="Grill, bar, pastry…" /></Field><Field label="Menu image"><Input name="image" type="file" accept="image/*" /></Field></div>
           <Field label="Guest-facing description"><textarea name="description" value={draft.description} onChange={(event) => updateDraft("description", event.target.value)} maxLength={500} rows={3} placeholder="Describe the ingredients and flavour." className="menu-select resize-none" /></Field>
-          <div className="grid gap-4 sm:grid-cols-3"><Field label="SKU"><Input name="sku" value={draft.sku} onChange={(event) => updateDraft("sku", event.target.value)} placeholder="BURG-001" /></Field><Field label="Barcode / QR"><Input name="barcode" value={draft.barcode} onChange={(event) => updateDraft("barcode", event.target.value)} placeholder="Optional barcode" /></Field><Field label="Item tax rate (%)"><Input name="taxRatePercent" type="number" min="0" max="100" step="0.01" value={draft.taxRatePercent ?? ""} onChange={(event) => updateDraft("taxRatePercent", event.target.value ? Number(event.target.value) : undefined)} placeholder="Uses restaurant default" /></Field></div>
+          <div className="grid gap-4 sm:grid-cols-3"><Field label="SKU"><Input name="sku" value={draft.sku} onChange={(event) => { setAutoSku(false); updateDraft("sku", event.target.value.toUpperCase()); }} placeholder="Generated automatically" /><p className="mt-1.5 text-[11px] font-normal text-ink/50 dark:text-paper/55">{autoSku ? "A unique SKU is assigned when this item is saved." : "Custom SKU"}</p></Field><Field label="Barcode"><Input name="barcode" inputMode="numeric" value={draft.barcode} onChange={(event) => { setAutoBarcode(false); updateDraft("barcode", event.target.value.replace(/\D/g, "")); }} placeholder="Generated automatically" /><p className="mt-1.5 text-[11px] font-normal text-ink/50 dark:text-paper/55">{autoBarcode ? "EAN-13 barcode generated on save." : "Custom barcode"}</p></Field><Field label="Item tax rate (%)"><Input name="taxRatePercent" type="number" min="0" max="100" step="0.01" value={draft.taxRatePercent ?? ""} onChange={(event) => updateDraft("taxRatePercent", event.target.value ? Number(event.target.value) : undefined)} placeholder="Uses restaurant default" /></Field></div>
+          {!draft.id ? <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-3 text-xs text-indigo-800 dark:border-indigo-400/25 dark:bg-indigo-400/10 dark:text-indigo-100"><span>SKU and barcode are generated automatically and remain editable.</span><button type="button" onClick={regenerateIdentifiers} className="font-semibold text-indigo-700 hover:underline dark:text-indigo-200">Regenerate preview</button></div> : null}
           <label className="flex items-center gap-2 rounded-lg bg-paper-dim px-3 py-3 text-sm font-medium dark:bg-ink"><input type="checkbox" checked={draft.isAvailable} onChange={(event) => updateDraft("isAvailable", event.target.checked)} /> Available to sell now <span className="text-xs font-normal text-ink/50 dark:text-paper/55">(uncheck to mark sold out everywhere)</span></label>
           <EditorSection title="Pricing" description="Use variants for sizes, portions, or other price points."><div className="space-y-2">{draft.variants.map((variant, index) => <div key={index} className="grid grid-cols-[1fr_130px_auto_auto] gap-2"><Input value={variant.name} onChange={(event) => updateVariant(index, { name: event.target.value })} placeholder="Regular" /><Input type="number" min="0" step="0.01" value={variant.priceMinor / 100} onChange={(event) => updateVariant(index, { priceMinor: Math.round((Number(event.target.value) || 0) * 100) })} aria-label="Price" /><button type="button" onClick={() => setDefaultVariant(index)} className={`rounded-lg px-3 text-xs font-medium ${variant.isDefault ? "bg-indigo-600 text-white" : "border border-ink-line/20 text-ink/60 dark:border-ink-line dark:text-paper/65"}`}>Default</button><button type="button" onClick={() => setDraft((current) => ({ ...current, variants: current.variants.length > 1 ? current.variants.filter((_, position) => position !== index) : current.variants }))} className="rounded-lg px-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-400/10" aria-label="Remove price option">×</button></div>)}</div><button type="button" onClick={() => setDraft((current) => ({ ...current, variants: [...current.variants, { name: "New option", priceMinor: 0, isDefault: false }] }))} className="mt-3 text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-300">+ Add price option</button></EditorSection>
           <EditorSection title="Modifiers" description="Optional choices shown when the cashier adds this item in POS."><div className="space-y-4">{draft.modifierGroups.map((group, index) => <div key={index} className="rounded-lg border border-ink-line/15 p-3 dark:border-ink-line"><div className="grid gap-2 sm:grid-cols-[1fr_90px_90px_auto]"><Input value={group.name} onChange={(event) => updateModifierGroup(index, { name: event.target.value })} placeholder="Add-ons" /><Input type="number" min="0" value={group.minSelect} onChange={(event) => updateModifierGroup(index, { minSelect: Number(event.target.value) || 0 })} aria-label="Minimum selections" /><Input type="number" min="1" value={group.maxSelect} onChange={(event) => updateModifierGroup(index, { maxSelect: Number(event.target.value) || 1 })} aria-label="Maximum selections" /><button type="button" onClick={() => { setDraft((current) => ({ ...current, modifierGroups: current.modifierGroups.filter((_, position) => position !== index) })); setModifierTexts((current) => current.filter((_, position) => position !== index)); }} className="rounded-lg px-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-300">×</button></div><Input value={modifierTexts[index] ?? ""} onChange={(event) => setModifierTexts((current) => current.map((text, position) => position === index ? event.target.value : text))} className="mt-2" placeholder="Options: Extra cheese:100, Bacon:150, No onions:0" /><p className="mt-1 text-[11px] text-ink/50 dark:text-paper/50">Minimum / maximum selections · write each option as name:price, separated by commas.</p></div>)}</div><button type="button" onClick={() => { setDraft((current) => ({ ...current, modifierGroups: [...current.modifierGroups, { name: "Add-ons", minSelect: 0, maxSelect: 1, options: [] }] })); setModifierTexts((current) => [...current, ""]); }} className="mt-3 text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-300">+ Add modifier group</button></EditorSection>

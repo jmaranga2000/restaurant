@@ -8,6 +8,7 @@ import { CategoryModel, ProductModel } from "@/models/Product";
 import { cloudinaryImageUrl, uploadMenuItemImage } from "@/lib/cloudinary";
 import { ConflictError, NotFoundError, toClientError } from "@/lib/errors";
 import { categorySchema, menuAvailabilitySchema, menuItemSchema } from "@/validations/menu.schema";
+import { barcodeForSequence, menuSkuForSequence } from "@/lib/menu-identifiers";
 import type { ActionResult } from "@/actions/auth.actions";
 
 function refreshMenuSurfaces() {
@@ -30,6 +31,8 @@ export async function saveMenuItemAction(formData: FormData): Promise<ActionResu
     const variants = parseJsonField(formData.get("variants"), "price options");
     const modifierGroups = parseJsonField(formData.get("modifierGroups"), "modifier groups");
     const taxRate = formData.get("taxRatePercent");
+    const autoSku = formData.get("autoSku") === "true";
+    const autoBarcode = formData.get("autoBarcode") === "true";
     const parsed = menuItemSchema.parse({
       id: formData.get("id") || undefined,
       categoryId: formData.get("categoryId"),
@@ -45,13 +48,29 @@ export async function saveMenuItemAction(formData: FormData): Promise<ActionResu
     });
     const category = await CategoryModel.findOne({ _id: parsed.categoryId, organizationId: ctx.organizationId, isActive: true });
     if (!category) throw new NotFoundError("Menu category");
+    const categoryName = category.name;
+
+    async function nextAvailableIdentifier(kind: "sku" | "barcode") {
+      let sequence = (await ProductModel.countDocuments({ organizationId: ctx.organizationId })) + 1;
+      for (let attempt = 0; attempt < 10_000; attempt += 1, sequence += 1) {
+        const value = kind === "sku"
+          ? menuSkuForSequence(parsed.name, categoryName, sequence)
+          : barcodeForSequence(sequence);
+        const exists = await ProductModel.exists({ organizationId: ctx.organizationId, [kind]: value, ...(parsed.id ? { _id: { $ne: parsed.id } } : {}) });
+        if (!exists) return value;
+      }
+      throw new ConflictError(`A unique ${kind.toUpperCase()} could not be generated. Please enter one manually.`);
+    }
+
+    const sku = autoSku ? await nextAvailableIdentifier("sku") : parsed.sku;
+    const barcode = autoBarcode ? await nextAvailableIdentifier("barcode") : parsed.barcode;
 
     const conflict = await ProductModel.exists({
       organizationId: ctx.organizationId,
       _id: parsed.id ? { $ne: parsed.id } : { $exists: true },
       $or: [
-        ...(parsed.sku ? [{ sku: parsed.sku }] : []),
-        ...(parsed.barcode ? [{ barcode: parsed.barcode }] : []),
+        ...(sku ? [{ sku }] : []),
+        ...(barcode ? [{ barcode }] : []),
       ],
     });
     if (conflict) throw new ConflictError("That SKU or barcode is already used by another menu item.");
@@ -65,8 +84,8 @@ export async function saveMenuItemAction(formData: FormData): Promise<ActionResu
     product.name = parsed.name;
     product.description = parsed.description;
     product.kitchenStation = parsed.kitchenStation;
-    product.sku = parsed.sku;
-    product.barcode = parsed.barcode;
+    product.sku = sku;
+    product.barcode = barcode;
     product.taxRatePercent = parsed.taxRatePercent;
     product.isAvailable = parsed.isAvailable;
     product.set("variants", parsed.variants);

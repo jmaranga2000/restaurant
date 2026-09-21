@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { connectToDatabase } from "@/lib/db";
 import { UserModel } from "@/models/User";
 import { RoleModel } from "@/models/Role";
@@ -69,6 +70,9 @@ export async function loginAction(formData: FormData): Promise<ActionResult<{ re
 
 export async function logoutAction(): Promise<void> {
   clearSessionCookie();
+  // A portal route requires a session. Redirect in the same server action so
+  // React never attempts to re-render the protected page after its cookie is gone.
+  redirect("/");
 }
 
 /**

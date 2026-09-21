@@ -1,201 +1,242 @@
 import Link from "next/link";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { LandingNav } from "@/components/ui/LandingNav";
-
-const capabilities = [
-  { number: "01", title: "Every order, in flow", description: "A single ticket moves from the counter to the kitchen and table without a handoff getting lost.", detail: "POS · Kitchen display · Customer screen" },
-  { number: "02", title: "Stock that stays honest", description: "Know what each branch has, what it is using, and what needs attention before service begins.", detail: "Inventory · Suppliers · Movement history" },
-  { number: "03", title: "A clearer picture upstairs", description: "Give managers a live view of the numbers and operations that shape a stronger shift.", detail: "Branches · Reports · Team controls" },
-];
-
-const portalLinks = [
-  { eyebrow: "For restaurant teams", title: "Step into service", description: "Take orders, keep the kitchen moving, manage stock, and see how every branch is performing.", href: "/workspace", action: "Open workspace", number: "01", tone: "bg-ember text-white hover:bg-ember-dark" },
-  { eyebrow: "For restaurant owners", title: "Run your restaurant", description: "Set up branches, users, permissions, restaurant details, and the controls behind each shift.", href: "/admin", action: "Open restaurant admin", number: "02", tone: "border border-ink-line bg-ink-soft text-paper hover:bg-ink-line" },
-  { eyebrow: "For platform staff", title: "Oversee the network", description: "Review restaurants, manage account health, and keep the Restaurant OS platform running smoothly.", href: "/super-admin/login", action: "Super Admin login", number: "03", tone: "border border-ink/20 bg-paper text-ink hover:bg-paper-dim dark:border-paper/25 dark:bg-ink dark:text-paper dark:hover:bg-ink-soft" },
-];
 
 const heroImage = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=2400&q=90";
 
-function ArrowUpRight({ className = "" }: { className?: string }) {
-  return <span aria-hidden="true" className={`inline-block text-lg leading-none ${className}`}>↗</span>;
+const modules = [
+  { icon: "⊞", number: "01", title: "Service that moves", description: "Take orders with confidence, connect every table, and keep payments clear.", detail: "POS · Orders · Payments" },
+  { icon: "♨", number: "02", title: "A kitchen in sync", description: "Route each item to the right station and give the team a live, focused queue.", detail: "Kitchen Display · Stations · Timers" },
+  { icon: "▤", number: "03", title: "Stock with context", description: "Track the real story behind every ingredient, purchase, transfer, and waste entry.", detail: "Inventory · Suppliers · Stock ledger" },
+  { icon: "↗", number: "04", title: "A smarter overview", description: "See live performance by branch and find the next operational decision faster.", detail: "Analytics · Reports · Multi-branch" },
+];
+
+const workspaces = [
+  { number: "01", eyebrow: "For the service team", title: "Restaurant workspace", description: "A focused place to run the floor, kitchen, stock room, and daily service.", href: "/workspace", action: "Open workspace", accent: "bg-indigo-600" },
+  { number: "02", eyebrow: "For restaurant owners", title: "Restaurant admin", description: "Configure the menu, branches, users, brand, and operating controls behind every shift.", href: "/admin", action: "Open administration", accent: "bg-emerald-600" },
+  { number: "03", eyebrow: "For platform staff", title: "Platform control", description: "Manage the organizations, subscriptions, and health of your Restaurant OS network.", href: "/super-admin/login", action: "Platform login", accent: "bg-amber-500" },
+];
+
+function Arrow() {
+  return <span aria-hidden="true" className="text-base leading-none">→</span>;
 }
 
 export default function HomePage() {
   return (
-    <main className="relative min-h-screen overflow-x-hidden text-ink dark:text-paper">
+    <main className="relative min-h-screen overflow-x-hidden bg-paper text-ink dark:bg-ink dark:text-paper">
       <div
-        className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center lg:bg-[center_45%]"
-        style={{ backgroundImage: `url(${heroImage})` }}
         role="img"
         aria-label="Fine dining dish in an elegant restaurant"
+        className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center lg:bg-[center_45%]"
+        style={{ backgroundImage: `url(${heroImage})` }}
       />
-      <div className="pointer-events-none fixed inset-0 z-[1] bg-ink/10" />
+      <div className="pointer-events-none fixed inset-0 z-[1] bg-ink/20" />
 
       <div className="relative z-10">
-      <div className="border-b border-ink/10 bg-ink/95 text-paper backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 px-6 py-2.5 text-center font-mono text-[10px] uppercase tracking-[0.16em] sm:px-10">
-          <span className="inline-flex h-1.5 w-1.5 rounded-full bg-ember-light" />
-          Built for the pace of service
-        </div>
-      </div>
-
-      <LandingNav />
-
-      <section className="relative isolate min-h-[calc(100svh-7.6rem)] overflow-hidden text-paper">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-ink/90 via-ink/30 to-ink/10" />
-        <div className="mx-auto grid min-h-[calc(100svh-7.6rem)] max-w-7xl gap-12 px-6 pb-20 pt-14 sm:px-10 lg:grid-cols-12 lg:gap-10 lg:px-14 lg:pb-28 lg:pt-20">
-        <div className="flex flex-col justify-between lg:col-span-6">
-          <div>
-            <p className="mb-6 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.18em] text-ember-light">
-              <span className="h-px w-9 bg-ember" /> Restaurant operations platform
-            </p>
-            <h1 className="max-w-2xl font-display text-5xl leading-[0.91] tracking-[-0.045em] [text-shadow:0_2px_18px_rgb(20_24_29_/_0.55)] sm:text-6xl lg:text-7xl xl:text-[5.4rem]">
-              Make every shift feel <span className="italic text-ember-light">under control.</span>
-            </h1>
-            <p className="mt-7 max-w-xl text-base leading-7 text-paper/75 sm:text-lg sm:leading-8">
-              Restaurant OS connects the counter, the kitchen, the stock room, and head office — so your team can focus on the guests in front of them.
-            </p>
-          </div>
-
-          <div className="mt-10 flex flex-col gap-5 sm:flex-row sm:items-center">
-            <Link href="/register" className="group inline-flex items-center justify-center gap-3 bg-ember px-5 py-3.5 text-sm font-medium text-white transition-colors hover:bg-ember-dark sm:w-auto">
-              Start your restaurant <ArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Link>
-            <Link href="/workspace" className="group inline-flex items-center justify-center gap-3 border border-paper/35 bg-ink/35 px-5 py-3.5 text-sm font-medium text-paper backdrop-blur-sm transition-colors hover:border-paper/65 hover:bg-ink/60 sm:w-auto">
-              Open your workspace <ArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Link>
-            <p className="font-mono text-[10px] uppercase tracking-[0.13em] text-paper/55">Built for one location or one hundred</p>
+        <div className="border-b border-paper/10 bg-ink/90 text-paper backdrop-blur-md">
+          <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 px-4 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.16em] sm:px-6">
+            <span className="h-1.5 w-1.5 rounded-full bg-ember-light" />
+            Restaurant operations, designed for the pace of service
           </div>
         </div>
 
-        <div className="relative lg:col-span-6">
-          <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-ember/15 blur-3xl" />
-          <div className="relative overflow-hidden border border-paper/15 bg-ink/90 p-5 text-paper shadow-[10px_12px_0_0_#e0a56f] backdrop-blur-sm sm:p-7">
-            <div className="flex items-center justify-between border-b border-paper/15 pb-5">
-              <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ember font-display text-sm">R</span>
-                <div>
-                  <p className="text-sm font-medium">Riverside Kitchen</p>
-                  <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-paper/40">Downtown branch</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 rounded-full border border-paper/15 px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.13em] text-paper/60">
-                <span className="h-1.5 w-1.5 rounded-full bg-status-ready" /> Live service
-              </div>
-            </div>
+        <LandingNav />
 
-            <div className="grid gap-4 py-6 sm:grid-cols-[1.15fr_.85fr]">
-              <div className="border border-paper/15 bg-paper/[0.04] p-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-paper/45">Open orders</p>
-                    <p className="mt-2 font-display text-4xl tracking-tight">18</p>
-                  </div>
-                  <span className="bg-ember/20 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-ember-light">+4 now</span>
-                </div>
-                <div className="mt-5 space-y-2.5">
-                  {[
-                    ["#1042", "Table 08", "Preparing", "bg-status-preparing"],
-                    ["#1043", "Counter", "Ready", "bg-status-ready"],
-                    ["#1044", "Table 03", "Queued", "bg-status-waiting"],
-                  ].map(([order, table, status, color]) => (
-                    <div key={order} className="flex items-center justify-between border-t border-paper/10 pt-2.5 text-xs">
-                      <span className="text-paper/90"><span className="mr-2 font-mono text-[10px] text-paper/35">{order}</span>{table}</span>
-                      <span className="flex items-center gap-1.5 text-[10px] text-paper/55"><span className={`h-1.5 w-1.5 rounded-full ${color}`} />{status}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex flex-col justify-between bg-ember p-4 text-white">
-                <div>
-                  <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/65">Today’s sales</p>
-                  <p className="mt-2 font-display text-3xl tracking-tight">$2,840</p>
-                  <p className="mt-1 text-xs text-white/70">Up 12.8% from last Tuesday</p>
-                </div>
-                <div className="mt-8 flex h-11 items-end gap-1.5">
-                  {[34, 53, 42, 69, 58, 82, 66, 93, 76, 100].map((height, index) => (
-                    <span key={index} className="flex-1 bg-white/75" style={{ height: `${height}%` }} />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between border-t border-paper/15 pt-4">
-              <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-paper/45">Service pulse · 12:48 PM</span>
-              <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ember-light">Everything in motion</span>
-            </div>
-          </div>
-        </div>
-        </div>
-      </section>
-
-      <section id="operations" className="border-y border-ink/10 bg-paper-dim transition-colors duration-300 dark:border-ink-line dark:bg-ink-soft">
-        <div className="mx-auto max-w-7xl px-6 py-16 sm:px-10 lg:px-14 lg:py-20">
-          <div className="flex flex-col justify-between gap-5 border-b border-ink/10 pb-10 dark:border-ink-line sm:flex-row sm:items-end">
+        <section className="relative isolate overflow-hidden border-b border-paper/10 text-paper">
+          <div className="absolute inset-0 -z-10 bg-gradient-to-br from-ink/95 via-ink/78 to-ink/40" />
+          <div className="mx-auto grid min-h-[calc(100svh-7.25rem)] max-w-7xl gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[1.02fr_.98fr] lg:items-center lg:gap-14 lg:px-14 lg:py-24">
             <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ember">One operating rhythm</p>
-              <h2 className="mt-3 max-w-xl font-display text-4xl leading-[0.98] tracking-tight sm:text-5xl">Less chasing. More knowing.</h2>
-            </div>
-            <p className="max-w-sm text-sm leading-6 text-ink/60 dark:text-paper/60">The work is connected from the moment an order lands to the moment a manager reviews the day.</p>
-          </div>
+              <Badge tone="warning" className="border border-ember-light/30 bg-ember/15 text-ember-light">
+                <span className="h-1.5 w-1.5 rounded-full bg-ember-light" /> Restaurant operating system
+              </Badge>
+              <h1 className="mt-6 max-w-3xl font-display text-5xl leading-[0.93] tracking-[-0.055em] sm:text-6xl lg:text-7xl xl:text-[5.4rem]">
+                One calm system for <span className="text-ember-light">every busy shift.</span>
+              </h1>
+              <p className="mt-6 max-w-xl text-base leading-7 text-paper/75 sm:text-lg sm:leading-8">
+                Restaurant OS brings orders, kitchen work, inventory, teams, and branch performance into one clear operating rhythm.
+              </p>
 
-          <div className="grid divide-y divide-ink/10 dark:divide-ink-line lg:grid-cols-3 lg:divide-x lg:divide-y-0">
-            {capabilities.map((capability, index) => (
-              <article key={capability.number} className={`py-9 lg:px-8 lg:py-10 ${index === 0 ? "lg:pl-0" : ""} ${index === capabilities.length - 1 ? "lg:pr-0" : ""}`}>
-                <span className="font-mono text-[11px] text-ember">{capability.number}</span>
-                <h3 className="mt-10 font-display text-2xl tracking-tight">{capability.title}</h3>
-                <p className="mt-3 max-w-sm text-sm leading-6 text-ink/60 dark:text-paper/60">{capability.description}</p>
-                <p className="mt-7 font-mono text-[9px] uppercase tracking-[0.13em] text-ink/50 dark:text-paper/50">{capability.detail}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+              <div className="mt-8 flex flex-col gap-3 min-[430px]:flex-row">
+                <Button href="/register" className="bg-ember px-5 py-3.5 text-white hover:bg-ember-dark">
+                  Start your restaurant <Arrow />
+                </Button>
+                <Button href="/workspace" variant="secondary" className="border-paper/30 bg-paper/10 px-5 py-3.5 text-paper backdrop-blur hover:border-paper/55 hover:bg-paper/20 dark:border-paper/30 dark:bg-paper/10 dark:text-paper">
+                  Open workspace <Arrow />
+                </Button>
+              </div>
 
-      <section className="bg-paper px-6 py-20 transition-colors duration-300 dark:bg-ink sm:px-10 lg:px-14 lg:py-28" id="portals">
-        <div className="mx-auto max-w-7xl">
-        <div className="grid gap-9 lg:grid-cols-[.8fr_1.2fr] lg:gap-16">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-ember">Choose your workspace</p>
-            <h2 className="mt-4 max-w-md font-display text-4xl leading-[0.98] tracking-tight sm:text-5xl">The right view for every role.</h2>
-            <p className="mt-6 max-w-sm text-sm leading-6 text-ink/60 dark:text-paper/60">Start where you work. Each workspace is designed around the decisions your team makes every day.</p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {portalLinks.map((portal) => (
-              <Link key={portal.href} href={portal.href} className="group flex min-h-[290px] flex-col justify-between border border-ink/15 bg-paper p-6 transition-all hover:-translate-y-1 hover:border-ink/35 hover:shadow-[6px_6px_0_0_#14181d] dark:border-ink-line dark:bg-ink-soft dark:hover:border-paper/40 dark:hover:shadow-[6px_6px_0_0_#e0a56f]">
-                <div>
-                  <div className="flex items-start justify-between">
-                    <span className="font-mono text-[10px] text-ink/40 dark:text-paper/40">{portal.number}</span>
-                    <ArrowUpRight className="text-ink/40 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 dark:text-paper/40" />
+              <div className="mt-10 grid max-w-xl grid-cols-3 border-t border-paper/15 pt-5">
+                {["Counter", "Kitchen", "Head office"].map((label, index) => (
+                  <div key={label} className={index ? "border-l border-paper/15 pl-4 sm:pl-5" : "pr-4 sm:pr-5"}>
+                    <p className="font-display text-2xl text-paper">{["Live", "Clear", "Ready"][index]}</p>
+                    <p className="mt-1 text-xs text-paper/55">{label}</p>
                   </div>
-                  <p className="mt-12 font-mono text-[10px] uppercase tracking-[0.15em] text-ember">{portal.eyebrow}</p>
-                  <h3 className="mt-3 font-display text-2xl tracking-tight">{portal.title}</h3>
-                  <p className="mt-3 text-sm leading-6 text-ink/60 dark:text-paper/60">{portal.description}</p>
-                </div>
-                <span className={`mt-7 inline-flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${portal.tone}`}>
-                  {portal.action} <ArrowUpRight />
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-        </div>
-      </section>
+                ))}
+              </div>
+            </div>
 
-      <footer className="bg-ink text-paper">
-        <div className="mx-auto flex max-w-7xl flex-col gap-7 px-6 py-9 sm:px-10 sm:py-10 lg:flex-row lg:items-end lg:justify-between lg:px-14">
-          <div>
-            <Link href="/" className="font-display text-xl tracking-tight">Restaurant <span className="text-ember-light">OS</span></Link>
-            <p className="mt-2 text-sm text-paper/45">Operations, without the noise.</p>
+            <section aria-label="Restaurant OS live service preview" className="overflow-hidden rounded-xl border border-paper/15 bg-ink/80 p-4 shadow-[0_24px_70px_rgba(0,0,0,.35)] backdrop-blur-md sm:p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-paper/10 pb-4">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-ember text-lg text-white">R</span>
+                  <div>
+                    <p className="text-sm font-semibold">Riverside Kitchen</p>
+                    <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-paper/45">Westlands · Live service</p>
+                  </div>
+                </div>
+                <Badge tone="success" className="bg-emerald-400/15 text-emerald-200"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Online</Badge>
+              </div>
+
+              <div className="mt-4 grid gap-4 sm:grid-cols-[1.08fr_.92fr]">
+                <div className="rounded-lg border border-paper/10 bg-paper/[.05] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-paper/45">Service queue</p>
+                      <p className="mt-2 font-display text-4xl">18</p>
+                    </div>
+                    <Badge tone="warning" className="bg-ember/20 text-ember-light">4 new</Badge>
+                  </div>
+                  <div className="mt-5 space-y-2.5">
+                    {[
+                      ["#1048", "Table 08", "Preparing", "bg-amber-400"],
+                      ["#1049", "Table 04", "Ready", "bg-emerald-400"],
+                      ["#1050", "Takeaway", "Waiting", "bg-indigo-400"],
+                    ].map(([order, place, status, tone]) => (
+                      <div key={order} className="flex items-center justify-between gap-2 border-t border-paper/10 pt-2.5 text-xs">
+                        <span className="min-w-0 truncate text-paper/85"><span className="mr-2 font-mono text-[10px] text-paper/40">{order}</span>{place}</span>
+                        <span className="flex shrink-0 items-center gap-1.5 text-[10px] text-paper/60"><span className={`h-1.5 w-1.5 rounded-full ${tone}`} />{status}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex min-h-[215px] flex-col justify-between rounded-lg bg-ember p-4 text-white">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/65">Today’s sales</p>
+                    <p className="mt-2 font-display text-4xl tracking-tight">KSh 284K</p>
+                    <p className="mt-1 text-xs leading-5 text-white/75">426 orders across your active branches</p>
+                  </div>
+                  <div>
+                    <div className="flex h-12 items-end gap-1.5">
+                      {[34, 52, 44, 67, 58, 80, 65, 94, 76, 100].map((height, index) => <span key={index} className="flex-1 rounded-t-sm bg-white/80" style={{ height: `${height}%` }} />)}
+                    </div>
+                    <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.13em] text-white/65">Up 12.8% this week</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-2 border-t border-paper/10 pt-4 text-center">
+                {["3 branches", "7 low-stock", "14 online"].map((item) => <span key={item} className="rounded-md bg-paper/[.05] px-2 py-2 text-[10px] font-medium text-paper/65">{item}</span>)}
+              </div>
+            </section>
           </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-3 font-mono text-[10px] uppercase tracking-[0.14em] text-paper/50">
-            <Link href="/register" className="hover:text-paper">Create an account</Link>
-            <Link href="/login" className="hover:text-paper">Restaurant login</Link>
-            <Link href="/super-admin/login" className="hover:text-paper">Platform login</Link>
+        </section>
+
+        <section id="operations" className="bg-paper px-4 py-16 transition-colors dark:bg-ink sm:px-6 lg:px-14 lg:py-24">
+          <div className="mx-auto max-w-7xl">
+            <div className="flex flex-col gap-5 border-b border-ink-line/15 pb-9 dark:border-ink-line lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600 dark:text-indigo-300">One operating rhythm</p>
+                <h2 className="mt-3 max-w-2xl font-display text-4xl leading-[0.97] tracking-tight sm:text-5xl">The entire restaurant, connected without the noise.</h2>
+              </div>
+              <p className="max-w-md text-sm leading-6 text-ink/60 dark:text-paper/60">Every team works from the same current information, from the moment an order is placed to end-of-day reconciliation.</p>
+            </div>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {modules.map((module) => (
+                <Card key={module.number} className="group flex min-h-[250px] flex-col p-5 transition-transform duration-200 hover:-translate-y-1">
+                  <div className="flex items-start justify-between">
+                    <span className="grid h-10 w-10 place-items-center rounded-lg bg-indigo-50 text-lg text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-200">{module.icon}</span>
+                    <span className="text-xs font-medium text-ink/40 dark:text-paper/40">{module.number}</span>
+                  </div>
+                  <h3 className="mt-8 font-display text-2xl tracking-tight">{module.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-ink/60 dark:text-paper/60">{module.description}</p>
+                  <p className="mt-auto pt-6 text-[10px] font-semibold uppercase tracking-[0.12em] text-indigo-600 dark:text-indigo-300">{module.detail}</p>
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
-      </footer>
+        </section>
+
+        <section className="border-y border-ink-line/15 bg-paper-dim px-4 py-16 transition-colors dark:border-ink-line dark:bg-ink-soft sm:px-6 lg:px-14 lg:py-22">
+          <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-center lg:gap-16">
+            <div>
+              <Badge tone="info">Built around the service lifecycle</Badge>
+              <h2 className="mt-4 font-display text-4xl leading-[0.98] tracking-tight sm:text-5xl">From an order to a better next shift.</h2>
+              <p className="mt-5 max-w-md text-sm leading-6 text-ink/60 dark:text-paper/60">Restaurant OS keeps the important handoffs visible, accountable, and ready for the next person in the flow.</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[
+                ["01", "Guest order", "POS captures tables, guests, modifiers, notes, tax, and payment."],
+                ["02", "Kitchen execution", "Station-aware tickets advance through new, preparing, ready, and complete."],
+                ["03", "Live operations", "Dashboards, customer displays, stock alerts, and branch controls update together."],
+                ["04", "Confident close", "Reconcile payments, review performance, and begin the next service informed."],
+              ].map(([number, title, description]) => (
+                <div key={number} className="rounded-xl border border-ink-line/15 bg-white p-5 shadow-sm dark:border-ink-line dark:bg-ink">
+                  <span className="text-xs font-semibold text-ember">{number}</span>
+                  <h3 className="mt-5 text-lg font-semibold">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-ink/60 dark:text-paper/60">{description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="portals" className="bg-paper px-4 py-16 transition-colors dark:bg-ink sm:px-6 lg:px-14 lg:py-24">
+          <div className="mx-auto max-w-7xl">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600 dark:text-indigo-300">Choose your workspace</p>
+                <h2 className="mt-3 max-w-2xl font-display text-4xl leading-[0.98] tracking-tight sm:text-5xl">A useful view for every role.</h2>
+              </div>
+              <p className="max-w-md text-sm leading-6 text-ink/60 dark:text-paper/60">Start at the place where your work happens. Your access, organization, branches, and role shape the experience.</p>
+            </div>
+
+            <div className="mt-8 grid gap-4 lg:grid-cols-3">
+              {workspaces.map((workspace) => (
+                <Card key={workspace.href} className="group relative flex min-h-[300px] flex-col overflow-hidden p-6 transition-transform duration-200 hover:-translate-y-1">
+                  <span className={`absolute inset-x-0 top-0 h-1 ${workspace.accent}`} />
+                  <div className="flex items-start justify-between">
+                    <span className="text-xs font-medium text-ink/45 dark:text-paper/45">{workspace.number}</span>
+                    <span className="text-xl text-ink/35 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 dark:text-paper/35">↗</span>
+                  </div>
+                  <p className="mt-12 text-[10px] font-semibold uppercase tracking-[0.14em] text-indigo-600 dark:text-indigo-300">{workspace.eyebrow}</p>
+                  <h3 className="mt-3 font-display text-2xl tracking-tight">{workspace.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-ink/60 dark:text-paper/60">{workspace.description}</p>
+                  <Button href={workspace.href} variant="ghost" className="mt-auto justify-between border border-ink-line/15 px-4 dark:border-ink-line">
+                    {workspace.action} <Arrow />
+                  </Button>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-ink px-4 py-16 text-paper sm:px-6 lg:px-14 lg:py-20">
+          <div className="mx-auto flex max-w-7xl flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ember-light">Ready when your team is</p>
+              <h2 className="mt-3 max-w-2xl font-display text-4xl leading-[0.98] tracking-tight sm:text-5xl">Make the next service your clearest one yet.</h2>
+            </div>
+            <Button href="/register" className="bg-ember px-5 py-3.5 text-white hover:bg-ember-dark">Create your restaurant <Arrow /></Button>
+          </div>
+        </section>
+
+        <footer className="border-t border-paper/10 bg-ink px-4 pb-9 text-paper sm:px-6 lg:px-14">
+          <div className="mx-auto flex max-w-7xl flex-col gap-6 border-t border-paper/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <Link href="/" className="font-display text-xl tracking-tight">Restaurant <span className="text-ember-light">OS</span></Link>
+              <p className="mt-1 text-sm text-paper/45">Operations, without the noise.</p>
+            </div>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-paper/55">
+              <Link href="/register" className="hover:text-paper">Create account</Link>
+              <Link href="/login" className="hover:text-paper">Restaurant login</Link>
+              <Link href="/super-admin/login" className="hover:text-paper">Platform login</Link>
+            </div>
+          </div>
+        </footer>
       </div>
     </main>
   );

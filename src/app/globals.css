@@ -108,6 +108,28 @@ html:not(.dark) .kitchen-surface [class*="text-amber-100"] {
   color: #92400e;
 }
 
+.inventory-input {
+  width: 100%;
+  border: 1px solid rgb(36 96 128 / 0.2);
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: theme("colors.ink.DEFAULT");
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.inventory-input:focus {
+  border-color: rgb(99 102 241);
+  box-shadow: 0 0 0 2px rgb(99 102 241 / 0.15);
+}
+
+.dark .inventory-input {
+  border-color: theme("colors.ink.line");
+  background: theme("colors.ink.soft");
+  color: theme("colors.paper.DEFAULT");
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
