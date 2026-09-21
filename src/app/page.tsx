@@ -102,29 +102,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-y border-ink-line/15 bg-paper-dim px-4 py-16 transition-colors dark:border-ink-line dark:bg-ink-soft sm:px-6 lg:px-14 lg:py-22">
-          <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-center lg:gap-16">
-            <div>
-              <Badge tone="info">Built around the service lifecycle</Badge>
-              <h2 className="mt-4 font-display text-4xl leading-[0.98] tracking-tight sm:text-5xl">From an order to a better next shift.</h2>
-              <p className="mt-5 max-w-md text-sm leading-6 text-ink/60 dark:text-paper/60">Restaurant OS keeps the important handoffs visible, accountable, and ready for the next person in the flow.</p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {[
-                ["01", "Guest order", "POS captures tables, guests, modifiers, notes, tax, and payment."],
-                ["02", "Kitchen execution", "Station-aware tickets advance through new, preparing, ready, and complete."],
-                ["03", "Live operations", "Dashboards, customer displays, stock alerts, and branch controls update together."],
-                ["04", "Confident close", "Reconcile payments, review performance, and begin the next service informed."],
-              ].map(([number, title, description]) => (
-                <div key={number} className="rounded-xl border border-ink-line/15 bg-white p-5 shadow-sm dark:border-ink-line dark:bg-ink">
-                  <span className="text-xs font-semibold text-ember">{number}</span>
-                  <h3 className="mt-5 text-lg font-semibold">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-ink/60 dark:text-paper/60">{description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        
 
         <section id="portals" className="bg-paper px-4 py-16 transition-colors dark:bg-ink sm:px-6 lg:px-14 lg:py-24">
           <div className="mx-auto max-w-7xl">
