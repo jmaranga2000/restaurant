@@ -35,12 +35,7 @@ export default function HomePage() {
       <div className="pointer-events-none fixed inset-0 z-[1] bg-ink/20" />
 
       <div className="relative z-10">
-        <div className="border-b border-paper/10 bg-ink/90 text-paper backdrop-blur-md">
-          <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 px-4 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.16em] sm:px-6">
-            <span className="h-1.5 w-1.5 rounded-full bg-ember-light" />
-            Restaurant operations, designed for the pace of service
-          </div>
-        </div>
+        
 
         <LandingNav />
 
