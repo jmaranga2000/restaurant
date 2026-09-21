@@ -57,7 +57,7 @@ export default function HomePage() {
                 <Button href="/register" className="bg-ember px-5 py-3.5 text-white hover:bg-ember-dark">
                   Start your restaurant <Arrow />
                 </Button>
-                <Button href="/workspace" variant="secondary" className="border-paper/30 bg-paper/10 px-5 py-3.5 text-paper backdrop-blur hover:border-paper/55 hover:bg-paper/20 dark:border-paper/30 dark:bg-paper/10 dark:text-paper">
+                <Button href="/workspace" variant="secondary" className="border-paper/30 bg-paper/10 px-5 py-3.5 text-ember-dark backdrop-blur hover:border-paper/55 hover:bg-paper/20 dark:border-paper/30 dark:bg-paper/10 dark:text-paper">
                   Open workspace <Arrow />
                 </Button>
               </div>
