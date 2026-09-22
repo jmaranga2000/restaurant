@@ -11,5 +11,6 @@ export * from "./AuditLog";
 export * from "./Counter";
 export * from "./Customer";
 export * from "./CashierSession";
+export * from "./LoyaltyTransaction";
 export * from "./Supplier";
 export * from "./PlatformAdmin";

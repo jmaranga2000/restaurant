@@ -6,6 +6,11 @@ export const loginSchema = z.object({
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
+export const unlockRoleWorkspaceSchema = loginSchema.extend({
+  roleSlug: z.string().trim().regex(/^[a-z0-9_]+$/, "Select a valid workspace."),
+});
+export type UnlockRoleWorkspaceInput = z.infer<typeof unlockRoleWorkspaceSchema>;
+
 export const registerOrganizationSchema = z.object({
   organizationName: z.string().trim().min(2).max(120),
   ownerName: z.string().trim().min(2).max(120),

@@ -117,7 +117,7 @@ async function saveOnboarding(formData: FormData, complete: boolean): Promise<Ac
     revalidatePath("/workspace");
     revalidatePath("/dashboard");
     revalidatePath("/admin");
-    return { ok: true, data: { redirectTo: "/workspace" } };
+    return { ok: true, data: { redirectTo: "/choose-workspace" } };
   } catch (error) {
     return { ok: false, error: toClientError(error) };
   }

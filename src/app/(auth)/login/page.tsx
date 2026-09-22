@@ -23,7 +23,7 @@ export default function LoginPage({ searchParams }: { searchParams?: { error?: s
           <span aria-hidden="true">←</span> Back to home
         </Link>
         <h1 className="mb-1 font-display text-2xl">Restaurant OS</h1>
-        <p className="mb-8 text-sm text-ink/60 dark:text-paper/60">Sign in to your organization</p>
+        <p className="mb-8 text-sm text-ink/60 dark:text-paper/60">Restaurant owner sign in</p>
         {searchParams?.error ? <p role="alert" className="mb-4 rounded border border-status-cancelled/50 bg-status-cancelled/10 px-3 py-2 text-sm">{searchParams.error}</p> : null}
         <form action={handleLogin} className="space-y-4">
           {searchParams?.next ? <input type="hidden" name="next" value={searchParams.next} /> : null}
@@ -40,7 +40,7 @@ export default function LoginPage({ searchParams }: { searchParams?: { error?: s
             />
           </div>
           <PasswordField />
-          <AuthSubmitButton pendingLabel="Signing in…">Sign in</AuthSubmitButton>
+          <AuthSubmitButton pendingLabel="Opening restaurant…">Open restaurant</AuthSubmitButton>
         </form>
         <p className="mt-6 text-sm text-ink/50 dark:text-paper/40">
           New restaurant?{" "}
@@ -48,14 +48,7 @@ export default function LoginPage({ searchParams }: { searchParams?: { error?: s
             Set up your organization
           </Link>
         </p>
-        <div className="mt-6 grid grid-cols-2 gap-2 border-t border-ink-line/15 pt-5 dark:border-ink-line">
-          <Link href="/workspace" className="rounded border border-ink-line/25 px-3 py-2 text-center text-xs font-medium text-ink/70 transition-colors hover:border-ink-line hover:text-ink dark:border-paper/20 dark:text-paper/70 dark:hover:border-paper/45 dark:hover:text-paper">
-            Open workspace
-          </Link>
-          <Link href="/admin" className="rounded border border-ink-line/25 px-3 py-2 text-center text-xs font-medium text-ink/70 transition-colors hover:border-ink-line hover:text-ink dark:border-paper/20 dark:text-paper/70 dark:hover:border-paper/45 dark:hover:text-paper">
-            Restaurant admin
-          </Link>
-        </div>
+        <p className="mt-6 border-t border-ink-line/15 pt-5 text-xs leading-5 text-ink/50 dark:border-ink-line dark:text-paper/50">After the restaurant is opened, each team member selects their role and unlocks their own workspace with the credentials set by the Restaurant Admin.</p>
       </div>
     </main>
   );

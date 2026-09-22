@@ -4,7 +4,7 @@ import { Redis } from "@upstash/redis";
 const AUTH_ATTEMPT_LIMIT = 3;
 const AUTH_WINDOW_SECONDS = 15 * 60;
 
-type AuthRateLimitScope = "restaurant-login" | "organization-registration" | "platform-login";
+type AuthRateLimitScope = "restaurant-login" | "organization-registration" | "platform-login" | "role-unlock";
 type HeaderSource = Pick<Headers, "get">;
 
 type RateLimitEntry = {

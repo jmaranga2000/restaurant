@@ -5,6 +5,7 @@ import { OrganizationModel } from "@/models/Organization";
 import { OrderModel } from "@/models/Order";
 import { TableModel } from "@/models/Table";
 import { CustomerModel } from "@/models/Customer";
+import { LoyaltyTransactionModel } from "@/models/LoyaltyTransaction";
 import { connectToDatabase } from "@/lib/db";
 import { AuditService } from "@/services/audit.service";
 import { InventoryService } from "@/services/inventory.service";
@@ -479,6 +480,36 @@ export const OrderService = {
     await order.save();
 
     const totalPaidMinor = paidMinor + input.amountMinor;
+    // Reward a member only when the ticket becomes fully paid. This is a
+    // ledger entry rather than a hidden balance edit, which makes the points
+    // available to the cashier's Loyalty screen and keeps retries safe.
+    let loyaltyPointsAwarded = 0;
+    if (order.customerId && totalPaidMinor >= order.totalMinor) {
+      const eligiblePoints = Math.floor(order.totalMinor / 10_000); // 1 point per KSh 100
+      if (eligiblePoints > 0) {
+        const alreadyRewarded = await LoyaltyTransactionModel.exists({ organizationId: ctx.organizationId, orderId: order._id, type: "EARN" });
+        if (!alreadyRewarded) {
+          const customer = await CustomerModel.findOne({ _id: order.customerId, organizationId: ctx.organizationId, isActive: true });
+          if (customer) {
+            const balanceAfter = (customer.loyaltyPoints ?? 0) + eligiblePoints;
+            customer.loyaltyPoints = balanceAfter;
+            await customer.save();
+            await LoyaltyTransactionModel.create({
+              organizationId: ctx.organizationId,
+              branchId: order.branchId,
+              customerId: customer._id,
+              orderId: order._id,
+              type: "EARN",
+              points: eligiblePoints,
+              balanceAfter,
+              reason: `Order #${order.orderNumber} paid`,
+              createdBy: ctx.userId,
+            });
+            loyaltyPointsAwarded = eligiblePoints;
+          }
+        }
+      }
+    }
     await AuditService.record({
       organizationId: ctx.organizationId,
       branchId: String(order.branchId),
@@ -486,7 +517,7 @@ export const OrderService = {
       action: "order.payment_recorded",
       entityType: "Order",
       entityId: String(order._id),
-      after: { method: input.method, amountMinor: input.amountMinor, totalPaidMinor, balanceMinor: order.totalMinor - totalPaidMinor },
+      after: { method: input.method, amountMinor: input.amountMinor, totalPaidMinor, balanceMinor: order.totalMinor - totalPaidMinor, loyaltyPointsAwarded },
     });
 
     return { order, totalPaidMinor, balanceMinor: order.totalMinor - totalPaidMinor };
