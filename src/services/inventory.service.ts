@@ -145,7 +145,7 @@ export const InventoryService = {
   /** User-initiated adjustment/waste/receiving entry — goes through the same ledger as system-triggered consumption. */
   async recordManualMovement(
     ctx: AuthContext,
-    input: { branchId: string; inventoryItemId: string; type: StockMovementType; quantity: number; note?: string }
+    input: { branchId: string; inventoryItemId: string; type: StockMovementType; quantity: number; unitCostMinor?: number; note?: string }
   ): Promise<void> {
     requirePermissions(ctx, PERMISSIONS.INVENTORY_ADJUST);
     requireBranchAccess(ctx, input.branchId);
@@ -155,6 +155,7 @@ export const InventoryService = {
       inventoryItemId: input.inventoryItemId,
       type: input.type,
       quantity: input.quantity,
+      unitCostMinor: input.unitCostMinor,
       reference: { kind: "MANUAL" },
       note: input.note,
       performedBy: ctx.userId,

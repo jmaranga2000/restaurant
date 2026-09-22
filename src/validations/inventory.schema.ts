@@ -11,7 +11,7 @@ export const createInventoryItemSchema = z.object({
 });
 export type CreateInventoryItemInput = z.infer<typeof createInventoryItemSchema>;
 
-export const MANUAL_MOVEMENT_TYPES = ["ADJUSTMENT", "WASTE", "OPENING_BALANCE", "RETURN"] as const;
+export const MANUAL_MOVEMENT_TYPES = ["PURCHASE", "ADJUSTMENT", "WASTE", "OPENING_BALANCE", "RETURN"] as const;
 
 export const recordManualMovementSchema = z.object({
   branchId: objectId,
@@ -20,6 +20,11 @@ export const recordManualMovementSchema = z.object({
   // Positive for stock coming in (opening balance, return), negative for
   // stock going out (waste). "ADJUSTMENT" may be either sign.
   quantity: z.number().refine((n) => n !== 0, "Quantity can't be zero."),
+  unitCostMinor: z.number().int().min(0).optional(),
   note: z.string().trim().max(280).optional(),
+}).superRefine((movement, context) => {
+  if (movement.type === "PURCHASE" && (!movement.unitCostMinor || movement.unitCostMinor <= 0)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["unitCostMinor"], message: "Enter the purchase cost per unit." });
+  }
 });
 export type RecordManualMovementInput = z.infer<typeof recordManualMovementSchema>;

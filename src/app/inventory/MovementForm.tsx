@@ -16,6 +16,7 @@ interface Item {
 }
 
 const movementCopy: Record<(typeof MANUAL_MOVEMENT_TYPES)[number], string> = {
+  PURCHASE: "Receives stock and updates the moving average unit cost.",
   ADJUSTMENT: "Increase or decrease stock after a count.",
   WASTE: "Records a positive amount as stock out.",
   OPENING_BALANCE: "Sets the starting stock through the ledger.",
@@ -45,6 +46,7 @@ export function MovementForm({
         inventoryItemId: formData.get("inventoryItemId"),
         type,
         quantity,
+        unitCostMinor: type === "PURCHASE" ? Math.round(Number(formData.get("unitCost")) * 100) : undefined,
         note: formData.get("note") || undefined,
       });
 
@@ -71,6 +73,7 @@ export function MovementForm({
             {items.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.quantityOnHand} {item.unit}</option>)}
           </select>
         </label>
+        {type === "PURCHASE" ? <label className="block text-xs font-medium text-ink/65 dark:text-paper/70">Cost per unit<Input name="unitCost" type="number" min="0.01" step="0.01" required placeholder="0.00" className="mt-1.5" disabled={!items.length} /></label> : null}
         <label className="block text-xs font-medium text-ink/65 dark:text-paper/70">
           Movement type
           <select value={type} onChange={(event) => setType(event.target.value as typeof type)} className="inventory-input mt-1.5">
