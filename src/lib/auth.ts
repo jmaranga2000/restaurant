@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 
 const AUTH_SECRET = process.env.AUTH_SECRET;
 if (!AUTH_SECRET) {
@@ -32,7 +32,7 @@ export interface SessionPayload {
 }
 
 /** A role-selection device context, deliberately separate from a staff login. */
-export interface OrganizationAccessPayload {
+export interface OrganizationAccessPayload extends JWTPayload {
   organizationId: string;
   scope: "organization-access";
 }
