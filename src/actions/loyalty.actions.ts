@@ -12,6 +12,7 @@ function revalidateLoyaltySurfaces() {
   revalidatePath("/pos");
   revalidatePath("/pos/loyalty");
   revalidatePath("/workspace/customers");
+  revalidatePath("/workspace/loyalty");
 }
 
 export async function createLoyaltyCustomerAction(input: unknown): Promise<ActionResult<{ customerId: string }>> {

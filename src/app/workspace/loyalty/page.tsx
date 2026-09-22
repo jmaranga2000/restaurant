@@ -1,0 +1,33 @@
+import { requireSession } from "@/lib/session";
+import { connectToDatabase } from "@/lib/db";
+import { isOrgWideAccess, loadAuthContext, requireBranchAccess, requirePermissions } from "@/permissions/authorize";
+import { PERMISSIONS } from "@/types/permissions";
+import { CustomerModel } from "@/models/Customer";
+import { LoyaltyTransactionModel } from "@/models/LoyaltyTransaction";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { PageHeading } from "@/components/ui/PageHeading";
+
+function date(value: Date) { return new Intl.DateTimeFormat("en-KE", { dateStyle: "medium", timeStyle: "short" }).format(value); }
+
+export default async function WorkspaceLoyaltyPage() {
+  const ctx = await loadAuthContext(await requireSession());
+  requirePermissions(ctx, PERMISSIONS.MANAGER_WORKSPACE_ACCESS, PERMISSIONS.ORDERS_VIEW);
+  if (ctx.activeBranchId) requireBranchAccess(ctx, ctx.activeBranchId);
+  await connectToDatabase();
+  const organizationWide = isOrgWideAccess(ctx);
+  const [members, transactions] = await Promise.all([
+    CustomerModel.find({ organizationId: ctx.organizationId, isActive: true }).sort({ loyaltyPoints: -1, name: 1 }).limit(200).lean(),
+    LoyaltyTransactionModel.find({ organizationId: ctx.organizationId, ...(organizationWide || !ctx.activeBranchId ? {} : { branchId: ctx.activeBranchId }) }).sort({ createdAt: -1 }).limit(50).lean(),
+  ]);
+  const names = new Map(members.map((member) => [String(member._id), member.name]));
+  const totalPoints = members.reduce((sum, member) => sum + (member.loyaltyPoints ?? 0), 0);
+  const redeemable = members.filter((member) => (member.loyaltyPoints ?? 0) >= 500).length;
+  const earned = transactions.filter((transaction) => transaction.type === "EARN").reduce((sum, transaction) => sum + Math.abs(transaction.points), 0);
+  const redeemed = transactions.filter((transaction) => transaction.type === "REDEEM").reduce((sum, transaction) => sum + Math.abs(transaction.points), 0);
+
+  return <main className="min-h-screen bg-paper text-ink dark:bg-ink dark:text-paper"><div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8"><PageHeading eyebrow="Sales · Customer care" title="Loyalty" description="Review member balances and reward activity from the manager workspace. Point changes and new enrollments remain controlled by the cashier loyalty desk." actions={<><Button href="/workspace/customers" variant="secondary">Customer directory</Button><Button href="/pos/loyalty">Open cashier desk</Button></>} /><section className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><MetricCard label="Active members" value={String(members.length)} icon="◎" hint="Customer profiles" /><MetricCard label="Points in circulation" value={totalPoints.toLocaleString()} icon="✦" hint="Current balances" /><MetricCard label="Rewards available" value={String(redeemable)} icon="✓" hint="500+ points" /><MetricCard label="Ledger activity" value={String(transactions.length)} icon="◷" hint={ctx.activeBranchId ? "Active branch" : "All accessible branches"} /></section><section className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]"><Card className="overflow-hidden"><div className="border-b border-ink-line/15 p-5 dark:border-ink-line"><p className="text-xs font-semibold uppercase tracking-[.14em] text-indigo-600 dark:text-indigo-300">Member balances</p><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Rewards directory</h2></div>{members.length ? <div className="divide-y divide-ink-line/10 dark:divide-ink-line">{members.map((member) => <div key={String(member._id)} className="flex items-center gap-3 px-5 py-4"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-indigo-50 text-xs font-semibold text-indigo-700 dark:bg-indigo-400/15 dark:text-indigo-200">{member.name.slice(0, 2).toUpperCase()}</span><span className="min-w-0 flex-1"><b className="block truncate text-sm text-ink dark:text-paper">{member.name}</b><small className="mt-1 block truncate text-xs text-ink/50 dark:text-paper/55">{member.phone || member.email || "No contact details"}</small></span><span className="text-right"><b className="block text-sm text-ink dark:text-paper">{(member.loyaltyPoints ?? 0).toLocaleString()} pts</b><Badge tone={(member.loyaltyPoints ?? 0) >= 1000 ? "warning" : (member.loyaltyPoints ?? 0) >= 500 ? "info" : "success"}>{(member.loyaltyPoints ?? 0) >= 1000 ? "Gold" : (member.loyaltyPoints ?? 0) >= 500 ? "Silver" : "Member"}</Badge></span></div>)}</div> : <div className="p-6"><EmptyState icon="◎" title="No loyalty members yet" description="Use the cashier loyalty desk to enroll the first customer." action={<Button href="/pos/loyalty">Open cashier desk</Button>} /></div>}</Card><div className="space-y-5"><Card className="p-5"><p className="text-xs font-semibold uppercase tracking-[.14em] text-indigo-600 dark:text-indigo-300">Point flow</p><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Ledger totals</h2><div className="mt-5 space-y-3 text-sm"><div className="flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-3 dark:bg-emerald-400/10"><span>Points earned</span><b>+{earned.toLocaleString()}</b></div><div className="flex items-center justify-between rounded-lg bg-amber-50 px-3 py-3 dark:bg-amber-400/10"><span>Points redeemed</span><b>{redeemed.toLocaleString()}</b></div></div></Card><Card className="overflow-hidden"><div className="border-b border-ink-line/15 p-5 dark:border-ink-line"><p className="text-xs font-semibold uppercase tracking-[.14em] text-indigo-600 dark:text-indigo-300">Recent activity</p><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Latest changes</h2></div>{transactions.length ? <div className="divide-y divide-ink-line/10 dark:divide-ink-line">{transactions.slice(0, 10).map((transaction) => <div key={String(transaction._id)} className="px-5 py-3"><div className="flex items-center justify-between gap-3"><span className="min-w-0 truncate text-sm text-ink dark:text-paper">{names.get(String(transaction.customerId)) ?? "Former customer"}</span><b className={transaction.points >= 0 ? "text-emerald-700 dark:text-emerald-300" : "text-amber-800 dark:text-amber-100"}>{transaction.points >= 0 ? "+" : ""}{transaction.points} pts</b></div><p className="mt-1 truncate text-xs text-ink/50 dark:text-paper/55">{transaction.reason} · {date(transaction.createdAt)}</p></div>)}</div> : <p className="p-5 text-sm text-ink/55 dark:text-paper/60">No loyalty ledger activity yet.</p>}</Card></div></section></div></main>;
+}
