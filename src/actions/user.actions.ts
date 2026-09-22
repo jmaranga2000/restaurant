@@ -23,6 +23,7 @@ export async function inviteUserAction(formData: FormData): Promise<ActionResult
 
     const user = await UserService.invite(ctx, parsed);
     revalidatePath("/admin/users");
+    revalidatePath("/admin/users/new");
     return { ok: true, data: { userId: String(user._id) } };
   } catch (err) {
     return { ok: false, error: toClientError(err) };
