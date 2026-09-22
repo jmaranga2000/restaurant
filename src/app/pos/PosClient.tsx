@@ -47,6 +47,11 @@ interface OpenTicket {
   tableId?: string;
   customerId?: string;
   totalMinor: number;
+  subtotalMinor: number;
+  discountMinor: number;
+  taxMinor: number;
+  serviceChargeMinor: number;
+  createdAt: string;
   payments: { method: string; amountMinor: number; reference?: string; note?: string }[];
   items: { id: string; name: string; quantity: number; unitPriceMinor: number }[];
 }
@@ -68,6 +73,8 @@ export function PosClient({
   menu,
   branchId,
   currency,
+  restaurantName,
+  receipt,
   taxRatePercent,
   serviceChargePercent,
   pricesIncludeTax,
@@ -82,6 +89,8 @@ export function PosClient({
   menu: MenuProduct[];
   branchId: string | null;
   currency: string;
+  restaurantName: string;
+  receipt: { header?: string; footer?: string; prefix?: string };
   taxRatePercent: number;
   serviceChargePercent: number;
   pricesIncludeTax: boolean;
@@ -213,7 +222,7 @@ export function PosClient({
     });
     setBusy(null);
     if (!result.ok) return showError(result.error.message);
-    const ticket: OpenTicket = { id: result.data.orderId, number: result.data.orderNumber, status: result.data.status, orderType, tableId: tableId || undefined, customerId: customerId || undefined, totalMinor: result.data.totalMinor, payments: [], items: cart.map((line) => ({ id: line.key, name: line.productName, quantity: line.quantity, unitPriceMinor: line.unitPriceMinor })) };
+    const ticket: OpenTicket = { id: result.data.orderId, number: result.data.orderNumber, status: result.data.status, orderType, tableId: tableId || undefined, customerId: customerId || undefined, subtotalMinor, discountMinor, taxMinor, serviceChargeMinor: serviceMinor, totalMinor: result.data.totalMinor, createdAt: new Date().toISOString(), payments: [], items: cart.map((line) => ({ id: line.key, name: line.productName, quantity: line.quantity, unitPriceMinor: line.unitPriceMinor })) };
     setActiveTicket(ticket);
     setCart([]); setSelectedLineKey(null); setOrderNotes(""); setDiscountPercent("0"); idempotencyKey.current = crypto.randomUUID();
     showSuccess(submitMode === "HOLD" ? `Order #${result.data.orderNumber} is safely held.` : `Order #${result.data.orderNumber} was sent to the kitchen.`);
@@ -221,7 +230,7 @@ export function PosClient({
   }
 
   function selectTicket(ticket: OpenTicket) {
-    setActiveTicket(ticket); setPaymentAmount(""); setPaymentReference(""); setNotice(null);
+    setActiveTicket(ticket); setPaymentAmount(""); setPaymentReference(""); setPaymentMethod(paymentMethods[0]?.code ?? "CASH"); setNotice(null);
   }
 
   async function recordPayment() {
@@ -298,6 +307,7 @@ export function PosClient({
 
   return (
     <main className="min-h-screen bg-paper text-ink dark:bg-ink dark:text-paper print:bg-white print:text-black">
+      <div className="print:hidden">
       <div className="border-b border-ink-line/15 bg-white px-4 py-4 dark:border-ink-line dark:bg-ink-soft print:hidden sm:px-6">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3">
           <div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-indigo-600 dark:text-indigo-300">Live point of sale</p><h1 className="font-display text-2xl">Service counter</h1></div>
@@ -343,6 +353,80 @@ export function PosClient({
           <div><h3 className="font-medium">Payments recorded</h3>{activeTicket.payments.length ? <div className="mt-3 space-y-2">{activeTicket.payments.map((payment, index) => <div key={`${payment.method}-${index}`} className="flex items-center justify-between rounded-lg border border-ink-line/15 px-3 py-2 text-sm dark:border-ink-line"><span>{titleCase(payment.method)}{payment.reference ? ` · ${payment.reference}` : ""}{payment.note ? ` · ${payment.note}` : ""}</span><span className={payment.amountMinor < 0 ? "text-red-600 dark:text-red-300" : "font-medium"}>{payment.amountMinor < 0 ? "−" : ""}{money(Math.abs(payment.amountMinor), currency)}</span></div>)}</div> : <p className="mt-3 rounded-lg border border-dashed border-ink-line/20 p-4 text-sm text-ink/50 dark:border-ink-line dark:text-paper/55">No payment recorded yet.</p>}</div></div>
         <div className="mt-5 grid gap-3 border-t border-ink-line/15 pt-5 dark:border-ink-line lg:grid-cols-3"><label className="text-xs font-medium">Transfer table<select value={activeTicket.tableId ?? ""} onChange={(event) => transferTable(event.target.value)} disabled={busy === "transfer"} className="mt-1 block w-full rounded-lg border border-ink-line/20 bg-paper px-3 py-2 text-sm dark:border-ink-line dark:bg-ink"><option value="">Choose table</option>{tables.map((table) => <option key={table.id} value={table.id}>{table.label}</option>)}</select></label>{activeTicket.status === "DRAFT" ? <div className="text-xs font-medium">Merge held order<select value={mergeTargetId} onChange={(event) => setMergeTargetId(event.target.value)} className="mt-1 block w-full rounded-lg border border-ink-line/20 bg-paper px-3 py-2 text-sm dark:border-ink-line dark:bg-ink"><option value="">Choose another held order</option>{heldTickets.filter((ticket) => ticket.id !== activeTicket.id).map((ticket) => <option key={ticket.id} value={ticket.id}>#{ticket.number} · {money(ticket.totalMinor, currency)}</option>)}</select><button onClick={mergeHeld} disabled={!mergeTargetId || busy === "merge"} className="mt-2 rounded border border-ink-line/20 px-3 py-1.5 text-xs disabled:opacity-50 dark:border-ink-line">{busy === "merge" ? "Merging…" : "Merge orders"}</button></div> : <div className="text-xs text-ink/50 dark:text-paper/55"><p className="font-medium text-ink dark:text-paper">Order history</p><p className="mt-1">Every status change, table transfer, payment, refund, merge, and void is written to the activity audit.</p></div>}{canVoid ? <div className="flex items-end"><button onClick={voidTicket} disabled={busy === "void"} className="rounded bg-red-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50">{busy === "void" ? "Processing…" : "Cancel / void order"}</button></div> : null}</div>
       </div></section> : null}
+      </div>
+      {activeTicket ? <ThermalReceipt ticket={activeTicket} restaurantName={restaurantName} receipt={receipt} currency={currency} tableLabel={activeTicket.tableId ? tables.find((table) => table.id === activeTicket.tableId)?.label : undefined} paymentLabels={new Map(paymentMethods.map((method) => [method.code, method.label]))} /> : null}
     </main>
+  );
+}
+
+function ThermalReceipt({
+  ticket,
+  restaurantName,
+  receipt,
+  currency,
+  tableLabel,
+  paymentLabels,
+}: {
+  ticket: OpenTicket;
+  restaurantName: string;
+  receipt: { header?: string; footer?: string; prefix?: string };
+  currency: string;
+  tableLabel?: string;
+  paymentLabels: Map<string, string>;
+}) {
+  const paidMinor = ticket.payments.reduce((sum, payment) => sum + payment.amountMinor, 0);
+  const balanceMinor = Math.max(0, ticket.totalMinor - paidMinor);
+  const printedAt = new Intl.DateTimeFormat("en-KE", { dateStyle: "medium", timeStyle: "short" }).format(new Date(ticket.createdAt));
+  const receiptNumber = receipt.prefix ? `${receipt.prefix}-${ticket.number}` : ticket.number;
+
+  return (
+    <section className="hidden print:block print:w-[80mm] print:bg-white print:px-[5mm] print:py-[4mm] print-font">
+      <style>{`@media print { @page { size: 80mm auto; margin: 0; } .print-font { font-family: Arial, Helvetica, sans-serif !important; color: #111827 !important; } }`}</style>
+      <div className="text-center">
+        <div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-slate-900 text-lg font-bold text-white">R</div>
+        <h1 className="mt-2 text-lg font-bold uppercase tracking-tight">{restaurantName}</h1>
+        <p className="mt-1 text-[10px] leading-4 text-slate-600">{receipt.header || "Fresh food, thoughtful service."}</p>
+        <p className="mt-3 border-y border-dashed border-slate-400 py-2 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-600">Customer receipt</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1 py-3 text-[10px] leading-4">
+        <span className="text-slate-500">Receipt</span><span className="text-right font-semibold">#{receiptNumber}</span>
+        <span className="text-slate-500">Date</span><span className="text-right">{printedAt}</span>
+        <span className="text-slate-500">Service</span><span className="text-right">{tableLabel || titleCase(ticket.orderType)}</span>
+        <span className="text-slate-500">Status</span><span className="text-right font-semibold">{titleCase(ticket.status)}</span>
+      </div>
+
+      <div className="border-y border-dashed border-slate-400 py-2">
+        <div className="flex justify-between text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500"><span>Item</span><span>Total</span></div>
+        <div className="mt-2 space-y-2 text-[11px]">
+          {ticket.items.map((item, index) => (
+            <div key={`${item.id}-${index}`} className="flex items-start justify-between gap-3">
+              <span className="min-w-0"><b className="font-medium">{item.quantity} ×</b> {item.name}</span>
+              <span className="shrink-0 font-medium">{money(item.quantity * item.unitPriceMinor, currency)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-1.5 py-3 text-[11px]">
+        <p className="flex justify-between"><span className="text-slate-600">Subtotal</span><span>{money(ticket.subtotalMinor, currency)}</span></p>
+        {ticket.discountMinor ? <p className="flex justify-between"><span className="text-slate-600">Discount</span><span>−{money(ticket.discountMinor, currency)}</span></p> : null}
+        {ticket.taxMinor ? <p className="flex justify-between"><span className="text-slate-600">Tax</span><span>{money(ticket.taxMinor, currency)}</span></p> : null}
+        {ticket.serviceChargeMinor ? <p className="flex justify-between"><span className="text-slate-600">Service charge</span><span>{money(ticket.serviceChargeMinor, currency)}</span></p> : null}
+        <p className="flex justify-between border-t border-slate-900 pt-2 text-sm font-bold"><span>Total</span><span>{money(ticket.totalMinor, currency)}</span></p>
+      </div>
+
+      <div className="border-y border-dashed border-slate-400 py-3 text-[10px]">
+        <p className="font-bold uppercase tracking-[0.1em] text-slate-600">Payment summary</p>
+        {ticket.payments.length ? <div className="mt-2 space-y-1.5">{ticket.payments.map((payment, index) => <p key={`${payment.method}-${index}`} className="flex justify-between"><span>{paymentLabels.get(payment.method) ?? titleCase(payment.method)}{payment.reference ? ` · ${payment.reference}` : ""}</span><span className="font-medium">{payment.amountMinor < 0 ? "−" : ""}{money(Math.abs(payment.amountMinor), currency)}</span></p>)}</div> : <p className="mt-2 text-slate-500">No payment recorded</p>}
+        <p className="mt-2 flex justify-between font-bold"><span>{balanceMinor ? "Balance due" : "Balance"}</span><span>{money(balanceMinor, currency)}</span></p>
+      </div>
+
+      <div className="pt-4 text-center">
+        <p className="text-[11px] font-semibold">{receipt.footer || "Thank you for dining with us."}</p>
+        <p className="mt-2 text-[9px] uppercase tracking-[0.12em] text-slate-500">Please keep this receipt for your records</p>
+        <div className="mx-auto mt-3 h-1.5 w-28 bg-[repeating-linear-gradient(90deg,#111_0,#111_2px,transparent_2px,transparent_4px)]" />
+      </div>
+    </section>
   );
 }

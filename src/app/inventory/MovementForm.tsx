@@ -22,9 +22,17 @@ const movementCopy: Record<(typeof MANUAL_MOVEMENT_TYPES)[number], string> = {
   RETURN: "Records stock returned to the branch.",
 };
 
-export function MovementForm({ branchId, items }: { branchId: string; items: Item[] }) {
+export function MovementForm({
+  branchId,
+  items,
+  initialType = "ADJUSTMENT",
+}: {
+  branchId: string;
+  items: Item[];
+  initialType?: (typeof MANUAL_MOVEMENT_TYPES)[number];
+}) {
   const router = useRouter();
-  const [type, setType] = useState<(typeof MANUAL_MOVEMENT_TYPES)[number]>("ADJUSTMENT");
+  const [type, setType] = useState<(typeof MANUAL_MOVEMENT_TYPES)[number]>(initialType);
   const [status, setStatus] = useState<{ kind: "idle" | "error" | "success"; message?: string }>({ kind: "idle" });
   const [isPending, startTransition] = useTransition();
 

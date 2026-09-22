@@ -58,7 +58,7 @@ export function DisplayClient({
       } catch {
         // A display should remain readable during a short network outage.
       }
-    }, 10000);
+    }, 4000);
     const clock = window.setInterval(() => setNow(new Date()), 1000);
     // Promotions change gently on a customer-facing screen rather than
     // competing with guests trying to read the menu or order numbers.

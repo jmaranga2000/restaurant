@@ -369,24 +369,39 @@ export const OrderService = {
     else if (itemStatuses.every((status) => status === "READY" || status === "COMPLETED")) derivedStatus = "READY";
     else if (itemStatuses.some((status) => status !== "NEW") && (previousStatus === "PLACED" || previousStatus === "CONFIRMED")) derivedStatus = "PREPARING";
 
-    if (derivedStatus && derivedStatus !== previousStatus && canTransition(previousStatus, derivedStatus)) {
-      if (derivedStatus === "PREPARING") {
-        for (const item of order.items) {
-          const product = await ProductRepository.findById(ctx.organizationId, String(item.productId));
-          if (!product) continue;
-          for (const line of product.recipe) {
-            await InventoryService.consumeForOrderItem({
-              organizationId: ctx.organizationId,
-              branchId: String(order.branchId),
-              orderId: String(order._id),
-              inventoryItemId: String(line.inventoryItemId),
-              quantity: line.quantity * item.quantity,
-              performedBy: ctx.userId,
-            });
+    if (derivedStatus && derivedStatus !== previousStatus) {
+      // Advance through every commercial lifecycle state rather than trying to
+      // jump from PLACED straight to READY. That keeps the KDS, the customer
+      // display, and older in-progress tickets in agreement.
+      const kitchenLifecycle: OrderStatus[] = ["PLACED", "CONFIRMED", "PREPARING", "READY", "SERVED"];
+      const currentIndex = kitchenLifecycle.indexOf(order.status as OrderStatus);
+      const targetIndex = kitchenLifecycle.indexOf(derivedStatus);
+
+      if (currentIndex >= 0 && targetIndex > currentIndex) {
+        for (let index = currentIndex + 1; index <= targetIndex; index += 1) {
+          const nextOrderStatus = kitchenLifecycle[index]!;
+          if (!canTransition(order.status as OrderStatus, nextOrderStatus)) break;
+
+          if (nextOrderStatus === "PREPARING") {
+            for (const item of order.items) {
+              const product = await ProductRepository.findById(ctx.organizationId, String(item.productId));
+              if (!product) continue;
+              for (const line of product.recipe) {
+                await InventoryService.consumeForOrderItem({
+                  organizationId: ctx.organizationId,
+                  branchId: String(order.branchId),
+                  orderId: String(order._id),
+                  inventoryItemId: String(line.inventoryItemId),
+                  quantity: line.quantity * item.quantity,
+                  performedBy: ctx.userId,
+                });
+              }
+            }
           }
+
+          order.status = nextOrderStatus;
         }
       }
-      order.status = derivedStatus;
     }
 
     order.updatedBy = ctx.userId as unknown as typeof order.updatedBy;

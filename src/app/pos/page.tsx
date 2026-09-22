@@ -18,7 +18,7 @@ export default async function PosPage() {
 
   const [products, organization, categories, tables, customers, openTickets] = await Promise.all([
     ProductRepository.listByCategory(ctx.organizationId),
-    OrganizationModel.findById(ctx.organizationId).select("defaultCurrency settings").lean(),
+    OrganizationModel.findById(ctx.organizationId).select("name defaultCurrency receipt settings").lean(),
     CategoryModel.find({ organizationId: ctx.organizationId, isActive: true }).select("name").lean(),
     ctx.activeBranchId
       ? TableModel.find({ organizationId: ctx.organizationId, branchId: ctx.activeBranchId }).sort({ label: 1 }).lean()
@@ -60,9 +60,10 @@ export default async function PosPage() {
     })),
   }));
 
-  const paymentMethods = organization?.settings?.paymentMethods?.flatMap((method) => (
+  const configuredPaymentMethods = organization?.settings?.paymentMethods?.flatMap((method) => (
     method.enabled && method.code ? [{ code: method.code, label: method.label || method.code }] : []
-  )) ?? [
+  )) ?? [];
+  const paymentMethods = configuredPaymentMethods.length ? configuredPaymentMethods : [
     { code: "CASH" as const, label: "Cash" },
     { code: "MPESA" as const, label: "M-Pesa" },
     { code: "CARD" as const, label: "Card" },
@@ -75,6 +76,8 @@ export default async function PosPage() {
       menu={menu}
       branchId={ctx.activeBranchId}
       currency={organization?.defaultCurrency ?? "KES"}
+      restaurantName={organization?.name ?? "Restaurant"}
+      receipt={{ header: organization?.receipt?.header ?? undefined, footer: organization?.receipt?.footer ?? undefined, prefix: organization?.receipt?.prefix ?? undefined }}
       taxRatePercent={organization?.settings?.taxRatePercent ?? 0}
       serviceChargePercent={organization?.settings?.serviceChargePercent ?? 0}
       pricesIncludeTax={organization?.settings?.pricesIncludeTax ?? false}
@@ -92,6 +95,11 @@ export default async function PosPage() {
         tableId: order.tableId ? String(order.tableId) : undefined,
         customerId: order.customerId ? String(order.customerId) : undefined,
         totalMinor: order.totalMinor,
+        subtotalMinor: order.subtotalMinor,
+        discountMinor: order.discountMinor,
+        taxMinor: order.taxMinor,
+        serviceChargeMinor: order.serviceChargeMinor,
+        createdAt: order.createdAt.toISOString(),
         payments: order.payments.map((payment) => ({ method: payment.method, amountMinor: payment.amountMinor, reference: payment.reference ?? undefined, note: payment.note ?? undefined })),
         items: order.items.map((item) => ({ id: String(item._id), name: item.nameSnapshot, quantity: item.quantity, unitPriceMinor: item.unitPriceMinor })),
       }))}

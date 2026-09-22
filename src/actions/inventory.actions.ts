@@ -24,6 +24,8 @@ export async function createInventoryItemAction(formData: FormData): Promise<Act
 
     await InventoryService.createItem(ctx, parsed);
     revalidatePath("/inventory");
+    revalidatePath("/inventory/new");
+    revalidatePath("/inventory/ledger");
     return { ok: true, data: { ok: true } };
   } catch (err) {
     return { ok: false, error: toClientError(err) };
@@ -38,6 +40,8 @@ export async function recordManualMovementAction(input: unknown): Promise<Action
 
     await InventoryService.recordManualMovement(ctx, parsed);
     revalidatePath("/inventory");
+    revalidatePath("/inventory/new");
+    revalidatePath("/inventory/ledger");
     return { ok: true, data: { ok: true } };
   } catch (err) {
     return { ok: false, error: toClientError(err) };

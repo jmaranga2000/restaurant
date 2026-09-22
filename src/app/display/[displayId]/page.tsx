@@ -8,6 +8,14 @@ import { CategoryModel, ProductModel } from "@/models/Product";
 import { TableModel } from "@/models/Table";
 import { DisplayClient } from "./DisplayClient";
 
+export const dynamic = "force-dynamic";
+
+function isReadyForDisplay(order: { status: string; items: { kitchenStatus?: string | null }[] }) {
+  return order.status === "READY" || (
+    order.items.length > 0 && order.items.every((item) => item.kitchenStatus === "READY" || item.kitchenStatus === "COMPLETED")
+  );
+}
+
 /**
  * The branch ID is used as the public display key for now. Its display URL is
  * intentionally unauthenticated so it can be opened full-screen on a TV.
@@ -17,14 +25,11 @@ export default async function DisplayPage({ params }: { params: { displayId: str
   const branch = await BranchModel.findOne({ _id: params.displayId, isActive: true }).lean();
   if (!branch) notFound();
 
-  const [organization, waiting, ready, tables, categories, products] = await Promise.all([
+  const [organization, activeOrders, tables, categories, products] = await Promise.all([
     OrganizationModel.findById(branch.organizationId).select("name logoUrl").lean(),
-    OrderModel.find({ branchId: branch._id, status: { $in: ["PLACED", "CONFIRMED", "PREPARING"] } })
-      .select("orderNumber orderType tableId items createdAt")
-      .sort({ createdAt: 1 }).limit(12).lean(),
-    OrderModel.find({ branchId: branch._id, status: "READY" })
-      .select("orderNumber orderType tableId items createdAt")
-      .sort({ createdAt: 1 }).limit(12).lean(),
+    OrderModel.find({ branchId: branch._id, status: { $in: ["PLACED", "CONFIRMED", "PREPARING", "READY"] } })
+      .select("orderNumber orderType tableId items createdAt status")
+      .sort({ createdAt: 1 }).lean(),
     TableModel.find({ organizationId: branch.organizationId, branchId: branch._id }).select("label").lean(),
     CategoryModel.find({ organizationId: branch.organizationId, isActive: true }).sort({ sortOrder: 1, name: 1 }).lean(),
     ProductModel.find({ organizationId: branch.organizationId, isActive: true, isAvailable: { $ne: false } })
@@ -34,7 +39,9 @@ export default async function DisplayPage({ params }: { params: { displayId: str
 
   const tableLabels = new Map(tables.map((table) => [String(table._id), table.label]));
   const categoryNames = new Map(categories.map((category) => [String(category._id), category.name]));
-  const mapOrder = (order: typeof waiting[number]) => ({
+  const ready = activeOrders.filter(isReadyForDisplay);
+  const waiting = activeOrders.filter((order) => !isReadyForDisplay(order));
+  const mapOrder = (order: typeof activeOrders[number]) => ({
     number: order.orderNumber,
     location: order.tableId ? tableLabels.get(String(order.tableId)) ?? "Table" : order.orderType.replaceAll("_", " "),
     createdAt: order.createdAt.toISOString(),
