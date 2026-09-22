@@ -17,12 +17,12 @@ function isReadyForDisplay(order: { status: string; items: { kitchenStatus?: str
 }
 
 /**
- * The branch ID is used as the public display key for now. Its display URL is
- * intentionally unauthenticated so it can be opened full-screen on a TV.
+ * A non-guessable branch display key is the public display credential. The
+ * display remains login-free for TVs and tablets without exposing branch IDs.
  */
 export default async function DisplayPage({ params }: { params: { displayId: string } }) {
   await connectToDatabase();
-  const branch = await BranchModel.findOne({ _id: params.displayId, isActive: true }).lean();
+  const branch = await BranchModel.findOne({ customerDisplayKey: params.displayId, isActive: true }).lean();
   if (!branch) notFound();
 
   const [organization, activeOrders, tables, categories, products] = await Promise.all([

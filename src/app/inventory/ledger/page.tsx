@@ -1,6 +1,7 @@
 import { requireSession } from "@/lib/session";
 import { connectToDatabase } from "@/lib/db";
-import { loadAuthContext } from "@/permissions/authorize";
+import { loadAuthContext, requirePermissions } from "@/permissions/authorize";
+import { PERMISSIONS } from "@/types/permissions";
 import { InventoryService } from "@/services/inventory.service";
 import { StockMovementModel, STOCK_MOVEMENT_TYPES } from "@/models/StockMovement";
 import { Badge } from "@/components/ui/Badge";
@@ -14,6 +15,7 @@ import { formatQuantity, movementLabel, movementTone } from "../inventory-helper
 export default async function StockLedgerPage({ searchParams }: { searchParams?: { item?: string; type?: string } }) {
   const session = await requireSession();
   const ctx = await loadAuthContext(session);
+  requirePermissions(ctx, PERMISSIONS.MANAGER_WORKSPACE_ACCESS, PERMISSIONS.INVENTORY_VIEW);
 
   if (!ctx.activeBranchId) {
     return <main className="min-h-screen bg-paper p-4 text-ink dark:bg-ink dark:text-paper sm:p-6 lg:p-8"><div className="mx-auto max-w-5xl"><PageHeading eyebrow="Inventory" title="Choose a branch first" description="Select a branch before reviewing its stock ledger." actions={<Button href="/workspace" variant="secondary">Back to workspace</Button>} /><div className="mt-6"><EmptyState icon="↗" title="No active branch selected" description="A ledger is always tied to a single branch." action={<Button href="/workspace">Open workspace</Button>} /></div></div></main>;

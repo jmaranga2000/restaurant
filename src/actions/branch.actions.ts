@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/session";
 import { isOrgWideAccess, loadAuthContext, requireBranchAccess } from "@/permissions/authorize";
 import { BranchService } from "@/services/branch.service";
+import { DisplayService } from "@/services/display.service";
 import { createBranchSchema, updateBranchSchema } from "@/validations/branch.schema";
 import { AuthorizationError, toClientError } from "@/lib/errors";
 import type { ActionResult } from "@/actions/auth.actions";
@@ -60,6 +61,20 @@ export async function switchActiveBranchAction(branchId: string): Promise<Action
     revalidatePath("/kitchen");
     revalidatePath("/workspace");
     return { ok: true, data: { branchId: selectAllBranches ? "__all__" : branchId } };
+  } catch (err) {
+    return { ok: false, error: toClientError(err) };
+  }
+}
+
+/** Invalidates an old guest-display URL immediately if a device is lost or replaced. */
+export async function rotateCustomerDisplayKeyAction(branchId: string): Promise<ActionResult<{ key: string }>> {
+  try {
+    const session = await requireSession();
+    const ctx = await loadAuthContext(session);
+    const key = await DisplayService.rotateKey(ctx, branchId);
+    revalidatePath("/workspace/displays");
+    revalidatePath("/admin/branches");
+    return { ok: true, data: { key } };
   } catch (err) {
     return { ok: false, error: toClientError(err) };
   }

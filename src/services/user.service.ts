@@ -8,6 +8,7 @@ import { requirePermissions, type AuthContext } from "@/permissions/authorize";
 import { PERMISSIONS } from "@/types/permissions";
 import { BusinessRuleError, NotFoundError } from "@/lib/errors";
 import type { InviteUserInput, UpdateUserInput } from "@/validations/user.schema";
+import { isOrganizationWideRole } from "@/lib/portal-access";
 
 export const UserService = {
   async list(ctx: AuthContext) {
@@ -31,6 +32,9 @@ export const UserService = {
     await connectToDatabase();
     const role = await RoleModel.findOne({ _id: input.roleId, organizationId: ctx.organizationId }).lean();
     if (!role) throw new NotFoundError("Role");
+    if (!isOrganizationWideRole(role.slug) && input.assignedBranchIds.length === 0) {
+      throw new BusinessRuleError("Assign each staff member to at least one branch. Only Owners and Restaurant Admins can operate organization-wide.");
+    }
 
     const passwordHash = await hashPassword(input.temporaryPassword);
     const user = await UserRepository.create({
@@ -64,6 +68,13 @@ export const UserService = {
     if (!user) throw new NotFoundError("User");
 
     const before = { roleId: String(user.roleId), assignedBranchIds: user.assignedBranchIds.map(String), isActive: user.isActive };
+    const nextRoleId = input.roleId ?? String(user.roleId);
+    const nextRole = await RoleModel.findOne({ _id: nextRoleId, organizationId: ctx.organizationId }).lean();
+    if (!nextRole) throw new NotFoundError("Role");
+    const nextBranchIds = input.assignedBranchIds ?? user.assignedBranchIds.map(String);
+    if (!isOrganizationWideRole(nextRole.slug) && nextBranchIds.length === 0) {
+      throw new BusinessRuleError("Assign each staff member to at least one branch. Only Owners and Restaurant Admins can operate organization-wide.");
+    }
 
     if (input.name !== undefined) user.name = input.name;
     if (input.roleId !== undefined) user.roleId = input.roleId as unknown as typeof user.roleId;

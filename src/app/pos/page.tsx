@@ -84,6 +84,7 @@ export default async function PosPage() {
       tables={tables.map((table) => ({ id: String(table._id), label: table.label, seats: table.seats, status: table.status }))}
       customers={customers.map((customer) => ({ id: String(customer._id), name: customer.name, phone: customer.phone ?? undefined, email: customer.email ?? undefined }))}
       paymentMethods={paymentMethods}
+      canCollectPayments={ctx.permissions.includes(PERMISSIONS.PAYMENTS_COLLECT)}
       canDiscount={ctx.permissions.includes(PERMISSIONS.POS_DISCOUNT)}
       canRefund={ctx.permissions.includes(PERMISSIONS.POS_REFUND)}
       canVoid={ctx.permissions.includes(PERMISSIONS.ORDERS_CANCEL)}

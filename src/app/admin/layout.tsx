@@ -7,6 +7,7 @@ const navigation = [
   { href: "/admin", label: "Overview", icon: "▥" },
   { href: "/admin/menu", label: "Menu studio", icon: "≡" },
   { href: "/admin/branches", label: "Branches", icon: "⌂" },
+  { href: "/admin/displays", label: "Customer displays", icon: "▣" },
   { href: "/admin/users", label: "Users & roles", icon: "◎" },
   { href: "/admin/settings", label: "Settings", icon: "⚙" },
 ];
@@ -14,7 +15,7 @@ const navigation = [
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession();
   const ctx = await loadAuthContext(session);
-  requirePermissions(ctx, PERMISSIONS.SETTINGS_MANAGE);
+  requirePermissions(ctx, PERMISSIONS.RESTAURANT_ADMIN_ACCESS, PERMISSIONS.SETTINGS_MANAGE);
 
   return (
     <RestaurantPortalShell

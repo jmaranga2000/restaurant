@@ -20,6 +20,7 @@ export function RestaurantWorkspaceShell({
   organizationName,
   logoUrl,
   plan,
+  canConfigureOrganization,
 }: {
   children: React.ReactNode;
   branches: { id: string; name: string }[];
@@ -29,6 +30,7 @@ export function RestaurantWorkspaceShell({
   organizationName: string;
   logoUrl?: string;
   plan: string;
+  canConfigureOrganization: boolean;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -45,7 +47,7 @@ export function RestaurantWorkspaceShell({
       </aside>
 
       <div className={`min-h-screen min-w-0 transition-[padding] duration-300 ${collapsed ? "lg:pl-0" : "lg:pl-64"}`}>
-        <header className="sticky top-0 z-10 flex min-h-14 items-center gap-3 border-b border-ink-line/15 bg-paper/95 px-4 py-2 backdrop-blur dark:bg-ink/95 sm:px-6"><button type="button" aria-label="Open navigation" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)} className="inline-flex h-9 items-center gap-2 rounded-lg border border-ink-line/15 px-3 text-sm font-medium text-ink/70 transition-colors hover:bg-paper-dim dark:border-ink-line dark:text-paper/75 dark:hover:bg-ink-soft lg:hidden"><span aria-hidden="true">☰</span> Menu</button><button type="button" onClick={() => setCollapsed((value) => !value)} className="hidden rounded-lg border border-ink-line/15 bg-white px-3 py-2 text-xs text-ink/65 transition-colors hover:bg-paper-dim dark:border-ink-line dark:bg-ink-soft dark:text-paper/65 dark:hover:bg-ink-line lg:inline-flex">{collapsed ? "→ Show sidebar" : "← Hide sidebar"}</button><div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3"><Link href="/onboarding?edit=1" className="hidden text-xs text-ink/55 hover:text-indigo-600 dark:text-paper/60 dark:hover:text-indigo-300 sm:inline">Setup checklist</Link><Link href="/admin" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-medium text-white" aria-label="Restaurant administration">R</Link></div></header>
+        <header className="sticky top-0 z-10 flex min-h-14 items-center gap-3 border-b border-ink-line/15 bg-paper/95 px-4 py-2 backdrop-blur dark:bg-ink/95 sm:px-6"><button type="button" aria-label="Open navigation" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)} className="inline-flex h-9 items-center gap-2 rounded-lg border border-ink-line/15 px-3 text-sm font-medium text-ink/70 transition-colors hover:bg-paper-dim dark:border-ink-line dark:text-paper/75 dark:hover:bg-ink-soft lg:hidden"><span aria-hidden="true">☰</span> Menu</button><button type="button" onClick={() => setCollapsed((value) => !value)} className="hidden rounded-lg border border-ink-line/15 bg-white px-3 py-2 text-xs text-ink/65 transition-colors hover:bg-paper-dim dark:border-ink-line dark:bg-ink-soft dark:text-paper/65 dark:hover:bg-ink-line lg:inline-flex">{collapsed ? "→ Show sidebar" : "← Hide sidebar"}</button><div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">{canConfigureOrganization ? <><Link href="/onboarding?edit=1" className="hidden text-xs text-ink/55 hover:text-indigo-600 dark:text-paper/60 dark:hover:text-indigo-300 sm:inline">Setup checklist</Link><Link href="/admin" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-medium text-white" aria-label="Restaurant administration">R</Link></> : null}</div></header>
         <main className="min-w-0 overflow-x-hidden">{children}</main>
       </div>
     </div>

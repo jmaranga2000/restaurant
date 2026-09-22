@@ -6,10 +6,13 @@ import { OrganizationModel } from "@/models/Organization";
 import { AuthenticationError, AuthorizationError, NotFoundError } from "@/lib/errors";
 import type { Permission } from "@/types/permissions";
 import type { SessionPayload } from "@/lib/auth";
+import { isOrganizationWideRole } from "@/lib/portal-access";
+import { synchronizeSystemRoles } from "@/services/role.service";
 
 export interface AuthContext {
   userId: string;
   organizationId: string;
+  roleSlug: string;
   activeBranchId: string | null;
   permissions: Permission[];
   assignedBranchIds: string[];
@@ -26,6 +29,10 @@ export async function loadAuthContext(session: SessionPayload): Promise<AuthCont
 
   const org = await OrganizationModel.findOne({ _id: session.organizationId, isActive: true }).lean();
   if (!org) throw new AuthenticationError("This organization's account is currently suspended.");
+
+  // System roles evolve as the product gains secure operating portals. Add
+  // missing built-ins safely before evaluating the live role below.
+  await synchronizeSystemRoles(String(org._id));
 
   const user = await UserModel.findOne({
     _id: session.userId,
@@ -45,6 +52,7 @@ export async function loadAuthContext(session: SessionPayload): Promise<AuthCont
   return {
     userId: String(user._id),
     organizationId: String(user.organizationId),
+    roleSlug: role.slug,
     activeBranchId: session.activeBranchId,
     permissions: role.permissions as Permission[],
     assignedBranchIds: (user.assignedBranchIds ?? []).map(String),
@@ -66,7 +74,7 @@ export function requirePermissions(ctx: AuthContext, ...required: Permission[]):
  * assignedBranchIds.
  */
 export function isOrgWideAccess(ctx: AuthContext): boolean {
-  return ctx.permissions.length > 0 && ctx.assignedBranchIds.length === 0;
+  return isOrganizationWideRole(ctx.roleSlug) && ctx.assignedBranchIds.length === 0;
 }
 
 /** Throws unless the acting user has org-wide access or is assigned to the given branch. */

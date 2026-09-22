@@ -8,7 +8,7 @@ import { PageHeading } from "@/components/ui/PageHeading";
 import { requireSession } from "@/lib/session";
 import { connectToDatabase } from "@/lib/db";
 import { canUseWorkspaceModule, workspaceModules, type WorkspaceModuleId } from "@/lib/workspace";
-import { loadAuthContext } from "@/permissions/authorize";
+import { isOrgWideAccess, loadAuthContext } from "@/permissions/authorize";
 import { OrganizationModel } from "@/models/Organization";
 import { OrderModel } from "@/models/Order";
 import { TableModel } from "@/models/Table";
@@ -16,6 +16,10 @@ import { CustomerModel } from "@/models/Customer";
 import { CategoryModel, ProductModel } from "@/models/Product";
 import { SupplierModel } from "@/models/Supplier";
 import { BranchModel } from "@/models/Branch";
+import { UserModel } from "@/models/User";
+import { DisplayService } from "@/services/display.service";
+import { rotateCustomerDisplayKeyAction } from "@/actions/branch.actions";
+import type { AuthContext } from "@/permissions/authorize";
 import { Types } from "mongoose";
 import type { OrderStatus } from "@/types/order";
 
@@ -34,7 +38,7 @@ const moduleLinks: Partial<Record<WorkspaceModuleId, { label: string; href: stri
   loyalty: [{ label: "View customers", href: "/workspace/customers" }],
   expenses: [{ label: "Open reports", href: "/reports" }],
   reconciliation: [{ label: "Open POS", href: "/pos" }],
-  shifts: [{ label: "Manage employees", href: "/admin/users" }],
+  shifts: [{ label: "View branch employees", href: "/workspace/employees" }],
   signage: [{ label: "Open displays", href: "/workspace/displays" }],
   modifiers: [{ label: "Open POS", href: "/pos" }],
   combos: [{ label: "Open POS", href: "/pos" }],
@@ -48,6 +52,7 @@ export default async function WorkspaceModulePage({ params }: { params: { module
 
   const session = await requireSession();
   const ctx = await loadAuthContext(session);
+  if (!isOrgWideAccess(ctx) && !ctx.activeBranchId) redirect("/workspace");
   await connectToDatabase();
   const organization = await OrganizationModel.findById(ctx.organizationId).lean();
   if (!organization) redirect("/login");
@@ -61,7 +66,8 @@ export default async function WorkspaceModulePage({ params }: { params: { module
   if (module.id === "customers") return <CustomersWorkspace organizationId={ctx.organizationId} />;
   if (module.id === "menu" || module.id === "categories") return <MenuWorkspace organizationId={ctx.organizationId} mode={module.id} />;
   if (module.id === "suppliers") return <SuppliersWorkspace organizationId={ctx.organizationId} />;
-  if (module.id === "displays") return <DisplaysWorkspace organizationId={ctx.organizationId} />;
+  if (module.id === "displays") return <SecureDisplaysWorkspace ctx={ctx} />;
+  if (module.id === "employees") return <EmployeesWorkspace organizationId={ctx.organizationId} activeBranchId={ctx.activeBranchId} />;
 
   return <ModuleFoundation module={module} />;
 }
@@ -93,9 +99,31 @@ async function SuppliersWorkspace({ organizationId }: { organizationId: string }
   return <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8"><PageHeading eyebrow="Inventory" title="Suppliers" description="Keep purchasing contacts, payment terms, and supply relationships in one place." /><Card className="mt-6 overflow-hidden">{suppliers.length ? <div className="divide-y divide-ink-line/10 dark:divide-ink-line">{suppliers.map((supplier) => <div key={String(supplier._id)} className="flex items-center gap-4 px-5 py-4"><span className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-200">⌂</span><span className="min-w-0 flex-1"><b className="block truncate text-sm text-ink dark:text-paper">{supplier.name}</b><small className="mt-1 block truncate text-xs text-ink/50 dark:text-paper/55">{supplier.contactName || supplier.phone || supplier.email || "No contact details"}</small></span><Badge tone="neutral">{supplier.paymentTerms || "No terms"}</Badge></div>)}</div> : <div className="p-5"><EmptyState icon="⌂" title="No suppliers yet" description="Add suppliers as you begin creating purchase orders and receiving goods." action={<Button href="/inventory">Open inventory</Button>} /></div>}</Card></div>;
 }
 
+async function EmployeesWorkspace({ organizationId, activeBranchId }: { organizationId: string; activeBranchId: string | null }) {
+  const users = await UserModel.find({ organizationId, isActive: true, ...(activeBranchId ? { assignedBranchIds: activeBranchId } : {}) }).populate("roleId", "name").sort({ name: 1 }).lean();
+  return <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8"><PageHeading eyebrow="People" title="Branch employees" description="See the active team assigned to this operating location. Role and access changes remain controlled by Restaurant Administration." /><Card className="mt-6 overflow-hidden">{users.length ? <div className="divide-y divide-ink-line/10 dark:divide-ink-line">{users.map((user) => <div key={String(user._id)} className="flex items-center gap-4 px-5 py-4"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-semibold text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-200">{user.name.slice(0, 2).toUpperCase()}</span><span className="min-w-0 flex-1"><b className="block truncate text-sm text-ink dark:text-paper">{user.name}</b><small className="mt-1 block truncate text-xs text-ink/50 dark:text-paper/55">{user.email}</small></span><Badge tone="neutral">{(user.roleId as unknown as { name?: string })?.name ?? "Assigned role"}</Badge></div>)}</div> : <div className="p-5"><EmptyState icon="◎" title="No employees assigned" description="A Restaurant Admin can assign a staff member to this branch from Users and roles." /></div>}</Card></div>;
+}
+
 async function DisplaysWorkspace({ organizationId }: { organizationId: string }) {
   const branches = await BranchModel.find({ organizationId, isActive: true }).sort({ name: 1 }).lean();
   return <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8"><PageHeading eyebrow="Operations" title="Customer displays" description="Launch waiting and ready order screens on TVs, tablets, monitors, or any browser." /><Card className="mt-6 p-5">{branches.length ? <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{branches.map((branch) => <div key={String(branch._id)} className="rounded-xl border border-ink-line/15 p-4 dark:border-ink-line"><p className="font-display text-lg text-ink dark:text-paper">{branch.name}</p><p className="mt-1 text-xs text-ink/50 dark:text-paper/55">{branch.code}</p><Button href={`/display/${String(branch._id)}`} size="sm" className="mt-5 w-full" >Open fullscreen display ↗</Button></div>)}</div> : <EmptyState icon="▣" title="Add a branch first" description="A display belongs to a branch and updates its waiting and ready orders automatically." action={<Button href="/admin/branches">Manage branches</Button>} />}</Card></div>;
+}
+
+async function SecureDisplaysWorkspace({ ctx }: { ctx: AuthContext }) {
+  const branches = await DisplayService.list(ctx);
+
+  return (
+    <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+      <PageHeading eyebrow="Operations" title="Customer displays" description="Each screen has a separate read-only access key. It can show menu, waiting orders, and ready orders, but never staff controls or payment data." />
+      <Card className="mt-6 p-5">
+        {branches.length ? <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{branches.map((branch) => {
+          const displayKey = branch.customerDisplayKey;
+          if (!displayKey) return null;
+          return <div key={String(branch._id)} className="rounded-xl border border-ink-line/15 p-4 dark:border-ink-line"><p className="font-display text-lg text-ink dark:text-paper">{branch.name}</p><p className="mt-1 text-xs text-ink/50 dark:text-paper/55">{branch.code} · Guest display access</p><div className="mt-5 grid gap-2"><Link href={`/display/${displayKey}`} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700">Launch customer display ↗</Link><form action={rotateCustomerDisplayKeyAction.bind(null, String(branch._id))}><Button type="submit" variant="secondary" size="sm" className="w-full">Rotate display access key</Button></form></div></div>;
+        })}</div> : <EmptyState icon="▣" title="No assigned displays" description="A customer display belongs to a branch you manage." />}
+      </Card>
+    </div>
+  );
 }
 
 function ModuleFoundation({ module }: { module: (typeof workspaceModules)[number] }) {

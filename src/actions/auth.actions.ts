@@ -12,6 +12,9 @@ import { loginSchema, registerOrganizationSchema } from "@/validations/auth.sche
 import { toClientError, AuthenticationError, RateLimitError, ConflictError } from "@/lib/errors";
 import { consumeAuthRateLimit, rateLimitMessage, resetAuthRateLimit } from "@/lib/rate-limit";
 import { DEFAULT_ROLE_TEMPLATES } from "@/types/permissions";
+import type { Permission } from "@/types/permissions";
+import { canOpenPortalPath, defaultPortalFor } from "@/lib/portal-access";
+import { synchronizeSystemRoles } from "@/services/role.service";
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { message: string; code: string } };
 
@@ -35,6 +38,11 @@ export async function loginAction(formData: FormData): Promise<ActionResult<{ re
     const valid = await verifyPassword(parsed.password, user.passwordHash);
     if (!valid) throw new AuthenticationError("Incorrect email or password.");
 
+    await synchronizeSystemRoles(String(user.organizationId));
+    const role = await RoleModel.findOne({ _id: user.roleId, organizationId: user.organizationId }).select("permissions").lean();
+    if (!role) throw new AuthenticationError("This account no longer has an assigned role.");
+    const permissions = role.permissions as Permission[];
+
     await resetAuthRateLimit(rateLimit.key);
 
     user.lastLoginAt = new Date();
@@ -51,17 +59,12 @@ export async function loginAction(formData: FormData): Promise<ActionResult<{ re
     const requestedPath = typeof nextValue === "string" ? nextValue : undefined;
     // A destination can only be an internal restaurant route. This preserves
     // the page a person deliberately chose without allowing open redirects.
-    const canReturnTo = typeof requestedPath === "string" && (
-      requestedPath === "/workspace" ||
-      requestedPath.startsWith("/workspace/") ||
-      requestedPath === "/admin" ||
-      requestedPath.startsWith("/admin/")
-    );
+    const canReturnTo = typeof requestedPath === "string" && canOpenPortalPath(requestedPath, permissions);
     const redirectTo: string = organization?.onboarding?.status === "IN_PROGRESS"
       ? "/onboarding"
       : canReturnTo
         ? requestedPath!
-        : "/workspace";
+        : defaultPortalFor(permissions);
     return { ok: true, data: { redirectTo } };
   } catch (err) {
     return { ok: false, error: toClientError(err) };

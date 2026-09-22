@@ -444,7 +444,7 @@ export const OrderService = {
 
   /** Adds a tender to an order. Multiple calls intentionally support partial and split payments. */
   async recordPayment(ctx: AuthContext, input: RecordPaymentInput) {
-    requirePermissions(ctx, PERMISSIONS.POS_ACCESS);
+    requirePermissions(ctx, PERMISSIONS.POS_ACCESS, PERMISSIONS.PAYMENTS_COLLECT);
     const order = await findScopedOrder(ctx, input.orderId);
     if (["DRAFT", "CANCELLED", "VOIDED", "REFUNDED"].includes(order.status)) {
       throw new BusinessRuleError("Send an active order before recording a payment.");

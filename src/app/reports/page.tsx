@@ -1,5 +1,5 @@
 import { requireSession } from "@/lib/session";
-import { loadAuthContext, requirePermissions } from "@/permissions/authorize";
+import { loadAuthContext, requireBranchAccess, requirePermissions } from "@/permissions/authorize";
 import { PERMISSIONS } from "@/types/permissions";
 import { DashboardService } from "@/services/dashboard.service";
 
@@ -18,7 +18,8 @@ export default async function ReportsPage({
 }) {
   const session = await requireSession();
   const ctx = await loadAuthContext(session);
-  requirePermissions(ctx, PERMISSIONS.REPORTS_VIEW);
+  requirePermissions(ctx, PERMISSIONS.MANAGER_WORKSPACE_ACCESS, PERMISSIONS.REPORTS_VIEW);
+  if (ctx.activeBranchId) requireBranchAccess(ctx, ctx.activeBranchId);
 
   if (!ctx.activeBranchId) {
     return <div className="p-8 text-ink/70">Select a branch to see its reports.</div>;

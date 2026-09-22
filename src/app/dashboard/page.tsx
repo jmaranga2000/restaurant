@@ -1,5 +1,6 @@
 import { requireSession } from "@/lib/session";
-import { loadAuthContext } from "@/permissions/authorize";
+import { loadAuthContext, requirePermissions } from "@/permissions/authorize";
+import { PERMISSIONS } from "@/types/permissions";
 import { DashboardService } from "@/services/dashboard.service";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -16,6 +17,11 @@ function formatMoney(minorUnits: number, currency = "KES") {
 export default async function DashboardPage() {
   const session = await requireSession();
   const ctx = await loadAuthContext(session);
+  requirePermissions(ctx, PERMISSIONS.MANAGER_WORKSPACE_ACCESS);
+  const canUsePos = ctx.permissions.includes(PERMISSIONS.POS_ACCESS);
+  const canUseKitchen = ctx.permissions.includes(PERMISSIONS.KITCHEN_ACCESS);
+  const canViewInventory = ctx.permissions.includes(PERMISSIONS.INVENTORY_VIEW);
+  const canViewReports = ctx.permissions.includes(PERMISSIONS.REPORTS_VIEW);
 
   if (!ctx.activeBranchId) {
     return (
@@ -43,7 +49,7 @@ export default async function DashboardPage() {
         eyebrow="Restaurant workspace"
         title="Today’s service"
         description="A clear view of orders, revenue, and what your team needs to do next."
-        actions={<><Button href="/pos">Open POS <span aria-hidden="true">→</span></Button><Button href="/kitchen" variant="secondary">Kitchen board</Button></>}
+        actions={<>{canUsePos ? <Button href="/pos">Open POS <span aria-hidden="true">→</span></Button> : null}{canUseKitchen ? <Button href="/kitchen" variant="secondary">Kitchen board</Button> : null}</>}
       />
 
       <Card className="mt-6 overflow-hidden border-indigo-500/20 bg-gradient-to-br from-indigo-600 to-indigo-800 p-5 text-white dark:border-indigo-400/25 dark:from-[#155C88] dark:to-[#082C46] sm:p-6">
@@ -94,7 +100,7 @@ export default async function DashboardPage() {
       </section>
 
       <Card className="mt-4 p-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600 dark:text-indigo-300">Quick actions</p><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Keep the shift moving</h2></div><div className="flex flex-wrap gap-2"><Button href="/pos" variant="secondary" size="sm">New order</Button><Button href="/inventory" variant="secondary" size="sm">Check inventory</Button><Button href="/reports" variant="secondary" size="sm">View reports</Button></div></div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600 dark:text-indigo-300">Quick actions</p><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Keep the shift moving</h2></div><div className="flex flex-wrap gap-2">{canUsePos ? <Button href="/pos" variant="secondary" size="sm">New order</Button> : null}{canViewInventory ? <Button href="/inventory" variant="secondary" size="sm">Check inventory</Button> : null}{canViewReports ? <Button href="/reports" variant="secondary" size="sm">View reports</Button> : null}</div></div>
       </Card>
     </div>
   );

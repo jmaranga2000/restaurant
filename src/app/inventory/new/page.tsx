@@ -1,5 +1,6 @@
 import { requireSession } from "@/lib/session";
-import { loadAuthContext } from "@/permissions/authorize";
+import { loadAuthContext, requirePermissions } from "@/permissions/authorize";
+import { PERMISSIONS } from "@/types/permissions";
 import { InventoryService } from "@/services/inventory.service";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -12,6 +13,7 @@ import { MovementForm } from "../MovementForm";
 export default async function NewStockPage() {
   const session = await requireSession();
   const ctx = await loadAuthContext(session);
+  requirePermissions(ctx, PERMISSIONS.MANAGER_WORKSPACE_ACCESS, PERMISSIONS.INVENTORY_VIEW);
 
   if (!ctx.activeBranchId) {
     return <main className="min-h-screen bg-paper p-4 text-ink dark:bg-ink dark:text-paper sm:p-6 lg:p-8"><div className="mx-auto max-w-5xl"><PageHeading eyebrow="Inventory" title="Choose a branch first" description="Select a branch before adding its stock." actions={<Button href="/workspace" variant="secondary">Back to workspace</Button>} /><div className="mt-6"><EmptyState icon="▤" title="No active branch selected" description="Stock must belong to a specific branch." action={<Button href="/workspace">Open workspace</Button>} /></div></div></main>;

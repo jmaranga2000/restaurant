@@ -9,7 +9,8 @@ import { MetricCard } from "@/components/ui/MetricCard";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { requireSession } from "@/lib/session";
 import { connectToDatabase } from "@/lib/db";
-import { isOrgWideAccess, loadAuthContext } from "@/permissions/authorize";
+import { isOrgWideAccess, loadAuthContext, requirePermissions } from "@/permissions/authorize";
+import { PERMISSIONS } from "@/types/permissions";
 import { DashboardService } from "@/services/dashboard.service";
 import { BranchModel } from "@/models/Branch";
 import { CustomerModel } from "@/models/Customer";
@@ -27,18 +28,26 @@ const statusTone: Partial<Record<OrderStatus, "warning" | "info" | "success" | "
 export default async function WorkspaceDashboardPage() {
   const session = await requireSession();
   const ctx = await loadAuthContext(session);
+  requirePermissions(ctx, PERMISSIONS.MANAGER_WORKSPACE_ACCESS);
   await connectToDatabase();
-  const allBranches = !ctx.activeBranchId && isOrgWideAccess(ctx);
+  const organizationWide = isOrgWideAccess(ctx);
+  if (!organizationWide && !ctx.activeBranchId) {
+    return <div className="mx-auto max-w-5xl p-4 sm:p-6 lg:p-8"><PageHeading eyebrow="Manager workspace" title="A branch assignment is required" description="Your account is not assigned to an active branch, so no operational data has been opened." /><div className="mt-6"><EmptyState icon="⌂" title="Ask an administrator for branch access" description="A Restaurant Admin can assign your role to one or more branches from Users and roles." /></div></div>;
+  }
+  const allBranches = !ctx.activeBranchId && organizationWide;
   const branchScope = ctx.activeBranchId ? { branchId: ctx.activeBranchId } : {};
+  const accessibleBranchScope = organizationWide ? {} : { _id: { $in: ctx.assignedBranchIds } };
+  const canUsePos = ctx.permissions.includes(PERMISSIONS.POS_ACCESS);
+  const canUseKitchen = ctx.permissions.includes(PERMISSIONS.KITCHEN_ACCESS);
   const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
 
   const [branches, customers, lowStockItems, recentOrders, staff, branchRows] = await Promise.all([
-    BranchModel.find({ organizationId: ctx.organizationId, isActive: true }).sort({ name: 1 }).lean(),
-    CustomerModel.countDocuments({ organizationId: ctx.organizationId, isActive: true }),
+    BranchModel.find({ organizationId: ctx.organizationId, isActive: true, ...accessibleBranchScope }).sort({ name: 1 }).lean(),
+    organizationWide ? CustomerModel.countDocuments({ organizationId: ctx.organizationId, isActive: true }) : Promise.resolve(0),
     InventoryItemModel.find({ organizationId: ctx.organizationId, ...branchScope, $expr: { $lte: ["$quantityOnHand", "$reorderLevel"] } }).sort({ quantityOnHand: 1 }).limit(6).lean(),
     OrderModel.find({ organizationId: ctx.organizationId, ...branchScope }).sort({ createdAt: -1 }).limit(6).lean(),
-    UserModel.find({ organizationId: ctx.organizationId, isActive: true, lastLoginAt: { $gte: startOfDay } }).select("name lastLoginAt").sort({ lastLoginAt: -1 }).limit(5).lean(),
-    DashboardService.orgWideSummaryByBranch(ctx.organizationId),
+    UserModel.find({ organizationId: ctx.organizationId, isActive: true, lastLoginAt: { $gte: startOfDay }, ...(organizationWide ? {} : { assignedBranchIds: ctx.activeBranchId }) }).select("name lastLoginAt").sort({ lastLoginAt: -1 }).limit(5).lean(),
+    organizationWide ? DashboardService.orgWideSummaryByBranch(ctx.organizationId) : Promise.resolve([]),
   ]);
 
   const summary = allBranches ? null : await DashboardService.todaySummary(ctx.organizationId, ctx.activeBranchId!);
@@ -60,7 +69,7 @@ export default async function WorkspaceDashboardPage() {
 
   return (
     <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-      <PageHeading eyebrow={scopeName} title="How is your restaurant performing today?" description="Live sales, service, stock, and staff signals for the current operating day." actions={<><Button href="/pos">Open POS <span aria-hidden="true">→</span></Button><Button href="/kitchen" variant="secondary">Kitchen board</Button></>} />
+      <PageHeading eyebrow={scopeName} title="How is your restaurant performing today?" description="Live sales, service, stock, and staff signals for the current operating day." actions={<>{canUsePos ? <Button href="/pos">Open POS <span aria-hidden="true">→</span></Button> : null}{canUseKitchen ? <Button href="/kitchen" variant="secondary">Kitchen board</Button> : null}</>} />
 
       <section className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-label="Today’s restaurant performance">
         <MetricCard label="Today’s sales" value={money(totalRevenue)} icon="↗" trend={totalRevenue > 0 ? "Revenue recorded today" : undefined} hint={scopeName} />

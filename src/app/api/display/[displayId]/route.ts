@@ -17,7 +17,7 @@ function isReadyForDisplay(order: { status: string; items: { kitchenStatus?: str
 /** Public, display-scoped feed. It contains only the information a guest TV needs. */
 export async function GET(_request: Request, { params }: { params: { displayId: string } }) {
   await connectToDatabase();
-  const branch = await BranchModel.findOne({ _id: params.displayId, isActive: true }).lean();
+  const branch = await BranchModel.findOne({ customerDisplayKey: params.displayId, isActive: true }).lean();
   if (!branch) return NextResponse.json({ error: "Display not found." }, { status: 404 });
 
   const [activeOrders, tables, categories, products] = await Promise.all([

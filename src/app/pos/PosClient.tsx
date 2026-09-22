@@ -81,6 +81,7 @@ export function PosClient({
   tables,
   customers,
   paymentMethods,
+  canCollectPayments,
   canDiscount,
   canRefund,
   canVoid,
@@ -97,6 +98,7 @@ export function PosClient({
   tables: { id: string; label: string; seats: number; status: string }[];
   customers: { id: string; name: string; phone?: string; email?: string }[];
   paymentMethods: { code: PaymentCode; label: string }[];
+  canCollectPayments: boolean;
   canDiscount: boolean;
   canRefund: boolean;
   canVoid: boolean;
@@ -234,6 +236,7 @@ export function PosClient({
   }
 
   async function recordPayment() {
+    if (!canCollectPayments) return showError("Your role can create orders, but it cannot collect payments.");
     if (!activeTicket) return showError("Select an open order first.");
     const amountMinor = minorFromInput(paymentAmount);
     if (!amountMinor) return showError("Enter a valid payment amount.");

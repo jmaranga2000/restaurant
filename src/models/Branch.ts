@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
 
 const branchSchema = new Schema(
@@ -5,6 +6,9 @@ const branchSchema = new Schema(
     organizationId: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
     name: { type: String, required: true, trim: true },
     code: { type: String, required: true, trim: true }, // short branch code, e.g. "NBO-01"
+    // A non-guessable, read-only key for the public guest-facing display.
+    // It is deliberately not derived from a branch or organization identifier.
+    customerDisplayKey: { type: String, unique: true, sparse: true, default: () => randomUUID() },
     address: { type: String, trim: true },
     phone: { type: String, trim: true },
     city: { type: String, trim: true },

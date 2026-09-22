@@ -1,5 +1,6 @@
 import { requireSession } from "@/lib/session";
-import { loadAuthContext } from "@/permissions/authorize";
+import { loadAuthContext, requirePermissions } from "@/permissions/authorize";
+import { PERMISSIONS } from "@/types/permissions";
 import { InventoryService } from "@/services/inventory.service";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -13,6 +14,7 @@ import { formatMoney, formatQuantity, stockHealth } from "./inventory-helpers";
 export default async function InventoryPage() {
   const session = await requireSession();
   const ctx = await loadAuthContext(session);
+  requirePermissions(ctx, PERMISSIONS.MANAGER_WORKSPACE_ACCESS, PERMISSIONS.INVENTORY_VIEW);
 
   if (!ctx.activeBranchId) {
     return (
