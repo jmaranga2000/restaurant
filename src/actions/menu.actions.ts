@@ -13,6 +13,9 @@ import type { ActionResult } from "@/actions/auth.actions";
 
 function refreshMenuSurfaces() {
   revalidatePath("/admin/menu");
+  revalidatePath("/admin/menu/new");
+  revalidatePath("/admin/menu/categories");
+  revalidatePath("/admin/menu/categories/new");
   revalidatePath("/pos");
   revalidatePath("/workspace/menu");
   revalidatePath("/display", "layout");

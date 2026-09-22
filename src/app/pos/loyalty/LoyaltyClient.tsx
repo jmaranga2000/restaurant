@@ -93,7 +93,7 @@ export function LoyaltyClient({ members, activity }: { members: LoyaltyMember[];
 
   return (
     <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-      <PageHeading eyebrow="Cashier portal" title="Loyalty" description="Enroll guests, reward repeat visits, redeem points, and keep every balance change visible." actions={<Button href="/pos">Open register <span aria-hidden="true">→</span></Button>} />
+      <PageHeading eyebrow="Cashier portal" title="Loyalty" description="Enroll guests, reward repeat visits, redeem points, and keep every balance change visible." actions={<Button href="/pos/register">Open register <span aria-hidden="true">→</span></Button>} />
       <section className="mt-6 grid gap-3 sm:grid-cols-3">
         <MetricCard label="Loyalty members" value={String(members.length)} icon="◎" hint="Active customer profiles" />
         <MetricCard label="Points in circulation" value={totalPoints.toLocaleString()} icon="✦" hint="Across all listed members" />

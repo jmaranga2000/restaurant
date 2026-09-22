@@ -41,8 +41,10 @@ export const OrderRepository = {
   },
 
   /**
-   * Generates the next human-facing order number for a branch, scoped to
-   * the current day (e.g. "1051"). Uses findOneAndUpdate with $inc against
+  * Generates the next human-facing order number for a branch, scoped to
+  * the current day (e.g. "20260922-0001"). The date prefix is part of the
+  * stored number because the Order unique index spans all dates. Uses
+  * findOneAndUpdate with $inc against
    * a per-branch-per-day counter document so concurrent POS terminals never
    * collide — see the Counter model referenced here.
    */
@@ -56,7 +58,7 @@ export const OrderRepository = {
       { $inc: { value: 1 }, $setOnInsert: { organizationId: new Types.ObjectId(scope.organizationId) } },
       { upsert: true, new: true }
     );
-    return String(counter.value).padStart(4, "0");
+    return `${dayKey.replaceAll("-", "")}-${String(counter.value).padStart(4, "0")}`;
   },
 
   async create(orderDoc: Record<string, unknown>) {

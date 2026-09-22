@@ -17,6 +17,7 @@ export default async function AdminMenuPage() {
   ]);
   const categoryNames = new Map(categories.map((category) => [String(category._id), category.name]));
   return <MenuManager
+    mode="catalog"
     categories={categories.map((category) => ({ id: String(category._id), name: category.name }))}
     items={products.map((product) => ({
       id: String(product._id), name: product.name, description: product.description ?? "", categoryId: String(product.categoryId),
