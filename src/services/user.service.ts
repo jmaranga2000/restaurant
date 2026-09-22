@@ -81,6 +81,7 @@ export const UserService = {
     if (input.assignedBranchIds !== undefined)
       user.assignedBranchIds = input.assignedBranchIds as unknown as typeof user.assignedBranchIds;
     if (input.isActive !== undefined) user.isActive = input.isActive;
+    if (input.password !== undefined) user.passwordHash = await hashPassword(input.password);
     await user.save();
 
     await AuditService.record({
@@ -90,7 +91,7 @@ export const UserService = {
       entityType: "User",
       entityId: String(user._id),
       before,
-      after: { roleId: String(user.roleId), assignedBranchIds: user.assignedBranchIds.map(String), isActive: user.isActive },
+      after: { roleId: String(user.roleId), assignedBranchIds: user.assignedBranchIds.map(String), isActive: user.isActive, passwordChanged: input.password !== undefined },
     });
 
     return user;

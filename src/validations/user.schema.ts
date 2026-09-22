@@ -20,5 +20,6 @@ export const updateUserSchema = z.object({
   roleId: objectId.optional(),
   assignedBranchIds: z.array(objectId).optional(),
   isActive: z.boolean().optional(),
+  password: z.string().min(8).max(200).optional(),
 });
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;

@@ -10,7 +10,9 @@ export const UserRepository = {
 
   async findById(organizationId: string, userId: string) {
     await connectToDatabase();
-    return UserModel.findOne({ _id: userId, organizationId });
+    // Password hashes are never returned to a client. They are selected here
+    // only so an authorized restaurant administrator can replace a password.
+    return UserModel.findOne({ _id: userId, organizationId }).select("+passwordHash");
   },
 
   async emailExists(organizationId: string, email: string) {
