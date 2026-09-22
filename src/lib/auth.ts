@@ -31,6 +31,12 @@ export interface SessionPayload {
   [key: string]: unknown;
 }
 
+/** A role-selection device context, deliberately separate from a staff login. */
+export interface OrganizationAccessPayload {
+  organizationId: string;
+  scope: "organization-access";
+}
+
 export async function createSessionToken(payload: SessionPayload): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
@@ -51,5 +57,25 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
   }
 }
 
+export async function createOrganizationAccessToken(organizationId: string): Promise<string> {
+  const payload: OrganizationAccessPayload = { organizationId, scope: "organization-access" };
+  return new SignJWT(payload)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(`${SESSION_TTL_SECONDS}s`)
+    .sign(secretKey);
+}
+
+export async function verifyOrganizationAccessToken(token: string): Promise<OrganizationAccessPayload | null> {
+  try {
+    const { payload } = await jwtVerify(token, secretKey);
+    if (typeof payload.organizationId !== "string" || payload.scope !== "organization-access") return null;
+    return { organizationId: payload.organizationId, scope: "organization-access" };
+  } catch {
+    return null;
+  }
+}
+
 export const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME ?? "restaurant_os_session";
+export const ORGANIZATION_ACCESS_COOKIE_NAME = "restaurant_os_organization_access";
 export const SESSION_MAX_AGE_SECONDS = SESSION_TTL_SECONDS;

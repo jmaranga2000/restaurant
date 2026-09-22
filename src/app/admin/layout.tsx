@@ -9,6 +9,7 @@ const navigation = [
   { href: "/admin/branches", label: "Branches", icon: "⌂" },
   { href: "/admin/displays", label: "Customer displays", icon: "▣" },
   { href: "/admin/users", label: "Users & roles", icon: "◎" },
+  { href: "/admin/subscription", label: "Subscription", icon: "¤" },
   { href: "/admin/settings", label: "Settings", icon: "⚙" },
 ];
 

@@ -1,11 +1,11 @@
 import { RoleWorkspaceChooser, type RoleWorkspaceCard } from "@/components/access/RoleWorkspaceChooser";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeading } from "@/components/ui/PageHeading";
-import { requireSession } from "@/lib/session";
+import { getOrganizationAccess } from "@/lib/session";
 import { OrganizationModel } from "@/models/Organization";
 import { RoleModel } from "@/models/Role";
 import { UserModel } from "@/models/User";
-import { loadAuthContext } from "@/permissions/authorize";
+import { redirect } from "next/navigation";
 
 const rolePresentation: Record<string, Omit<RoleWorkspaceCard, "slug" | "staffCount">> = {
   owner: {
@@ -49,12 +49,12 @@ const rolePresentation: Record<string, Omit<RoleWorkspaceCard, "slug" | "staffCo
 const roleOrder = ["owner", "restaurant_admin", "branch_manager", "cashier", "waiter", "kitchen_staff"];
 
 export default async function ChooseWorkspacePage() {
-  const session = await requireSession();
-  const ctx = await loadAuthContext(session);
+  const access = await getOrganizationAccess();
+  if (!access) redirect("/login");
   const [organization, roles, activeUsers] = await Promise.all([
-    OrganizationModel.findById(ctx.organizationId).select("name").lean(),
-    RoleModel.find({ organizationId: ctx.organizationId }).select("slug").lean(),
-    UserModel.find({ organizationId: ctx.organizationId, isActive: true }).select("roleId").lean(),
+    OrganizationModel.findOne({ _id: access.organizationId, isActive: true }).select("name").lean(),
+    RoleModel.find({ organizationId: access.organizationId }).select("slug").lean(),
+    UserModel.find({ organizationId: access.organizationId, isActive: true }).select("roleId").lean(),
   ]);
   const activeUsersByRole = new Map<string, number>();
   for (const user of activeUsers) {

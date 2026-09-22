@@ -7,7 +7,7 @@ import { UserModel } from "@/models/User";
 import { RoleModel } from "@/models/Role";
 import { OrganizationModel } from "@/models/Organization";
 import { hashPassword, verifyPassword } from "@/lib/auth";
-import { setSessionCookie, clearSessionCookie, requireSession } from "@/lib/session";
+import { setSessionCookie, clearSessionCookie, requireOrganizationAccess, setOrganizationAccessCookie } from "@/lib/session";
 import { loginSchema, registerOrganizationSchema, unlockRoleWorkspaceSchema } from "@/validations/auth.schema";
 import { toClientError, AuthenticationError, RateLimitError, ConflictError } from "@/lib/errors";
 import { consumeAuthRateLimit, rateLimitMessage, resetAuthRateLimit } from "@/lib/rate-limit";
@@ -53,6 +53,7 @@ export async function loginAction(formData: FormData): Promise<ActionResult<{ re
       organizationId: String(user.organizationId),
       activeBranchId: user.assignedBranchIds[0] ? String(user.assignedBranchIds[0]) : null,
     });
+    await setOrganizationAccessCookie(String(user.organizationId));
 
     const organization = await OrganizationModel.findById(user.organizationId).select("onboarding").lean();
     const redirectTo: string = organization?.onboarding?.status === "IN_PROGRESS"
@@ -72,7 +73,7 @@ export async function loginAction(formData: FormData): Promise<ActionResult<{ re
  */
 export async function unlockRoleWorkspaceAction(input: unknown): Promise<ActionResult<{ redirectTo: string }>> {
   try {
-    const session = await requireSession();
+    const access = await requireOrganizationAccess();
     const parsed = unlockRoleWorkspaceSchema.parse(input);
     const rateLimit = await consumeAuthRateLimit({
       scope: "role-unlock",
@@ -82,12 +83,12 @@ export async function unlockRoleWorkspaceAction(input: unknown): Promise<ActionR
     if (!rateLimit.allowed) throw new RateLimitError(rateLimitMessage(rateLimit.retryAfterSeconds));
 
     await connectToDatabase();
-    const organization = await OrganizationModel.findOne({ _id: session.organizationId, isActive: true }).select("_id").lean();
+    const organization = await OrganizationModel.findOne({ _id: access.organizationId, isActive: true }).select("_id").lean();
     if (!organization) throw new AuthenticationError("This restaurant is not currently available.");
 
-    const user = await UserModel.findOne({ organizationId: session.organizationId, email: parsed.email, isActive: true }).select("+passwordHash");
+    const user = await UserModel.findOne({ organizationId: access.organizationId, email: parsed.email, isActive: true }).select("+passwordHash");
     if (!user) throw new AuthenticationError("Incorrect role, email, or password.");
-    const role = await RoleModel.findOne({ _id: user.roleId, organizationId: session.organizationId, slug: parsed.roleSlug }).lean();
+    const role = await RoleModel.findOne({ _id: user.roleId, organizationId: access.organizationId, slug: parsed.roleSlug }).lean();
     if (!role) throw new AuthenticationError("This account is not assigned to the selected role.");
     if (!await verifyPassword(parsed.password, user.passwordHash)) throw new AuthenticationError("Incorrect role, email, or password.");
 
@@ -107,9 +108,9 @@ export async function unlockRoleWorkspaceAction(input: unknown): Promise<ActionR
 
 export async function logoutAction(): Promise<void> {
   clearSessionCookie();
-  // A portal route requires a session. Redirect in the same server action so
-  // React never attempts to re-render the protected page after its cookie is gone.
-  redirect("/");
+  // Keep only the owner-opened restaurant context. The next staff member must
+  // still unlock a role with their own credentials before reaching a portal.
+  redirect("/choose-workspace");
 }
 
 /**
@@ -183,6 +184,7 @@ export async function registerOrganizationAction(
       organizationId: String(org._id),
       activeBranchId: null,
     });
+    await setOrganizationAccessCookie(String(org._id));
 
     await resetAuthRateLimit(rateLimit.key);
 

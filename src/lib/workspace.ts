@@ -49,7 +49,7 @@ export const workspaceModules: WorkspaceModule[] = [
   { id: "settings", label: "Restaurant settings", group: "Settings", icon: "⚙", description: "Manage restaurant details, taxes, receipts, payments, and integrations.", href: "/workspace/settings", liveHref: "/admin/settings", permission: PERMISSIONS.SETTINGS_MANAGE },
 ];
 
-const planRank: Record<SubscriptionPlan, number> = { TRIAL: 2, STARTER: 1, PROFESSIONAL: 2, ENTERPRISE: 3 };
+const planRank: Record<SubscriptionPlan, number> = { TRIAL: 0, STARTER: 1, PROFESSIONAL: 2, ENTERPRISE: 3 };
 
 export function normalizeSubscriptionPlan(value: unknown): SubscriptionPlan {
   return value === "STARTER" || value === "PROFESSIONAL" || value === "ENTERPRISE" || value === "TRIAL" ? value : "TRIAL";
