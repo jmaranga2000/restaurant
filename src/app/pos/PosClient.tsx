@@ -224,11 +224,8 @@ export function PosClient({
     });
     setBusy(null);
     if (!result.ok) return showError(result.error.message);
-    const ticket: OpenTicket = { id: result.data.orderId, number: result.data.orderNumber, status: result.data.status, orderType, tableId: tableId || undefined, customerId: customerId || undefined, subtotalMinor, discountMinor, taxMinor, serviceChargeMinor: serviceMinor, totalMinor: result.data.totalMinor, createdAt: new Date().toISOString(), payments: [], items: cart.map((line) => ({ id: line.key, name: line.productName, quantity: line.quantity, unitPriceMinor: line.unitPriceMinor })) };
-    setActiveTicket(ticket);
     setCart([]); setSelectedLineKey(null); setOrderNotes(""); setDiscountPercent("0"); idempotencyKey.current = crypto.randomUUID();
-    showSuccess(submitMode === "HOLD" ? `Order #${result.data.orderNumber} is safely held.` : `Order #${result.data.orderNumber} was sent to the kitchen.`);
-    router.refresh();
+    router.push("/pos/orders");
   }
 
   function selectTicket(ticket: OpenTicket) {

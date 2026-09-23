@@ -1,5 +1,5 @@
 import "server-only";
-import { Types } from "mongoose";
+import { randomInt } from "crypto";
 import { connectToDatabase } from "@/lib/db";
 import { OrderModel } from "@/models/Order";
 import type { OrderStatus } from "@/types/order";
@@ -7,6 +7,7 @@ import type { OrderStatus } from "@/types/order";
 export interface OrderScope {
   organizationId: string;
   branchId: string;
+  tableLabel?: string;
 }
 
 export const OrderRepository = {
@@ -40,25 +41,17 @@ export const OrderRepository = {
       .lean();
   },
 
-  /**
-  * Generates the next human-facing order number for a branch, scoped to
-  * the current day (e.g. "20260922-0001"). The date prefix is part of the
-  * stored number because the Order unique index spans all dates. Uses
-  * findOneAndUpdate with $inc against
-   * a per-branch-per-day counter document so concurrent POS terminals never
-   * collide — see the Counter model referenced here.
-   */
+  /** Generates a unique table-prefixed ticket number such as T01579. */
   async nextOrderNumber(scope: OrderScope): Promise<string> {
     await connectToDatabase();
-    const { CounterModel } = await import("@/models/Counter");
-    const dayKey = new Date().toISOString().slice(0, 10);
-    const counterId = `order:${scope.branchId}:${dayKey}`;
-    const counter = await CounterModel.findOneAndUpdate(
-      { _id: counterId },
-      { $inc: { value: 1 }, $setOnInsert: { organizationId: new Types.ObjectId(scope.organizationId) } },
-      { upsert: true, new: true }
-    );
-    return `${dayKey.replaceAll("-", "")}-${String(counter.value).padStart(4, "0")}`;
+    const tableDigits = scope.tableLabel?.match(/\d+/)?.[0] ?? "0";
+    const tableCode = tableDigits.slice(-2).padStart(2, "0");
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const orderNumber = `T${tableCode}${String(randomInt(0, 1000)).padStart(3, "0")}`;
+      const exists = await OrderModel.exists({ organizationId: scope.organizationId, branchId: scope.branchId, orderNumber });
+      if (!exists) return orderNumber;
+    }
+    throw new Error("Could not generate a unique order number. Please try again.");
   },
 
   async create(orderDoc: Record<string, unknown>) {

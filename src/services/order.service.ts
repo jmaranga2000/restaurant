@@ -145,7 +145,7 @@ export const OrderService = {
     if (input.orderType === "DINE_IN" && !input.tableId) {
       throw new BusinessRuleError("Choose a table for a dine-in order.");
     }
-    if (input.tableId) await ensureTable(ctx, input.branchId, input.tableId);
+    const table = input.tableId ? await ensureTable(ctx, input.branchId, input.tableId) : null;
     if (input.customerId) {
       const customer = await CustomerModel.exists({ _id: input.customerId, organizationId: ctx.organizationId, isActive: true });
       if (!customer) throw new NotFoundError("Customer");
@@ -201,6 +201,7 @@ export const OrderService = {
     const orderNumber = await OrderRepository.nextOrderNumber({
       organizationId: ctx.organizationId,
       branchId: input.branchId,
+      tableLabel: table?.label,
     });
 
     const order = await OrderRepository.create({
