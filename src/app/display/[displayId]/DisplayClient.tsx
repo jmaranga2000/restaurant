@@ -54,12 +54,17 @@ export function DisplayClient({
     let source: EventSource | undefined;
     let reconnectTimer: number | undefined;
     let disposed = false;
+    let syncing = false;
     const refreshData = async () => {
+      if (syncing || disposed) return;
+      syncing = true;
       try {
-        const response = await fetch(`/api/display/${displayId}`, { cache: "no-store" });
+        const response = await fetch(`/api/display/${displayId}?sync=${Date.now()}`, { cache: "no-store", headers: { "Cache-Control": "no-cache" } });
         if (response.ok) setLiveData(await response.json());
       } catch {
         // The next server event or reconnect will try again.
+      } finally {
+        syncing = false;
       }
     };
     const connect = () => {
@@ -72,6 +77,7 @@ export function DisplayClient({
       };
     };
     connect();
+    void refreshData();
     // Keep displays current when the deployment does not support long-lived
     // SSE connections or a realtime provider is unavailable.
     const fallbackSync = window.setInterval(refreshData, 5000);

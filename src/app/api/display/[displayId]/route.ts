@@ -9,9 +9,13 @@ import { TableModel } from "@/models/Table";
 export const dynamic = "force-dynamic";
 
 function isReadyForDisplay(order: { status: string; items: { kitchenStatus?: string | null }[] }) {
-  return order.status === "READY" || (
+  return order.status === "READY" || order.status === "SERVED" || (
     order.items.length > 0 && order.items.every((item) => item.kitchenStatus === "READY" || item.kitchenStatus === "COMPLETED")
   );
+}
+
+function isVisibleOnDisplay(order: { status: string; updatedAt: Date }) {
+  return order.status !== "SERVED" || Date.now() - order.updatedAt.getTime() < 10 * 60 * 1000;
 }
 
 /** Public, display-scoped feed. It contains only the information a guest TV needs. */
@@ -21,15 +25,16 @@ export async function GET(_request: Request, { params }: { params: { displayId: 
   if (!branch) return NextResponse.json({ error: "Display not found." }, { status: 404 });
 
   const [activeOrders, tables, categories, products] = await Promise.all([
-    OrderModel.find({ branchId: branch._id, status: { $in: ["PLACED", "CONFIRMED", "PREPARING", "READY"] } }).select("orderNumber orderType tableId items createdAt status").sort({ createdAt: 1 }).lean(),
+    OrderModel.find({ branchId: branch._id, status: { $in: ["PLACED", "CONFIRMED", "PREPARING", "READY", "SERVED"] } }).select("orderNumber orderType tableId items createdAt updatedAt status").sort({ createdAt: 1 }).lean(),
     TableModel.find({ organizationId: branch.organizationId, branchId: branch._id }).select("label").lean(),
     CategoryModel.find({ organizationId: branch.organizationId, isActive: true }).sort({ sortOrder: 1, name: 1 }).lean(),
     ProductModel.find({ organizationId: branch.organizationId, isActive: true, isAvailable: { $ne: false } }).select("name description categoryId variants imagePublicId").sort({ name: 1 }).lean(),
   ]);
   const tableLabels = new Map(tables.map((table) => [String(table._id), table.label]));
   const categoryNames = new Map(categories.map((category) => [String(category._id), category.name]));
-  const ready = activeOrders.filter(isReadyForDisplay);
-  const waiting = activeOrders.filter((order) => !isReadyForDisplay(order));
+  const visibleOrders = activeOrders.filter(isVisibleOnDisplay);
+  const ready = visibleOrders.filter(isReadyForDisplay);
+  const waiting = visibleOrders.filter((order) => !isReadyForDisplay(order));
   const mapOrder = (order: typeof activeOrders[number]) => ({
     number: order.orderNumber,
     location: order.tableId ? tableLabels.get(String(order.tableId)) ?? "Table" : order.orderType.replaceAll("_", " "),
