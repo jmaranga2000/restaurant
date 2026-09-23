@@ -39,6 +39,25 @@ export interface RealtimeProvider {
   publish(channel: string, event: RealtimeEvent): Promise<void>;
 }
 
+type RealtimeListener = (event: RealtimeEvent) => void;
+
+const localListeners = new Map<string, Set<RealtimeListener>>();
+
+/** Subscribe to events in this server process. SSE uses this for live displays. */
+export function subscribeToChannel(channel: string, listener: RealtimeListener): () => void {
+  const listeners = localListeners.get(channel) ?? new Set<RealtimeListener>();
+  listeners.add(listener);
+  localListeners.set(channel, listeners);
+  return () => {
+    listeners.delete(listener);
+    if (!listeners.size) localListeners.delete(channel);
+  };
+}
+
+function emitLocalEvent(channel: string, event: RealtimeEvent): void {
+  localListeners.get(channel)?.forEach((listener) => listener(event));
+}
+
 /**
  * Swap this adapter to change providers (Ably, Pusher, self-hosted
  * Socket.IO, Upstash Redis pub/sub, ...) without touching any service or
@@ -73,11 +92,13 @@ export async function publishEvent<T>(
   branchId: string,
   data: T
 ): Promise<void> {
-  await getProvider().publish(channel, {
+  const event = {
     name,
     organizationId,
     branchId,
     data,
     occurredAt: new Date().toISOString(),
-  });
+  } satisfies RealtimeEvent<T>;
+  await getProvider().publish(channel, event);
+  emitLocalEvent(channel, event);
 }

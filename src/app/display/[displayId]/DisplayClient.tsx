@@ -49,22 +49,38 @@ export function DisplayClient({
   const promotionalItem = liveData.menu.length ? liveData.menu[promotionIndex % liveData.menu.length] : undefined;
 
   useEffect(() => {
-    // Fetch only display data. Refreshing the route remounts the whole screen,
-    // resets carousels, and visibly flashes on a TV.
-    const refresh = window.setInterval(async () => {
+    // Kitchen events trigger a data-only fetch. The display stays mounted, so
+    // the clock, menu reel, and promotion carousel do not flash or reset.
+    let source: EventSource | undefined;
+    let reconnectTimer: number | undefined;
+    let disposed = false;
+    const refreshData = async () => {
       try {
         const response = await fetch(`/api/display/${displayId}`, { cache: "no-store" });
         if (response.ok) setLiveData(await response.json());
       } catch {
-        // A display should remain readable during a short network outage.
+        // The next server event or reconnect will try again.
       }
-    }, 4000);
+    };
+    const connect = () => {
+      if (disposed) return;
+      source = new EventSource(`/api/display/${displayId}/events`);
+      source.onmessage = refreshData;
+      source.onerror = () => {
+        source?.close();
+        if (!disposed) reconnectTimer = window.setTimeout(connect, 3000);
+      };
+    };
+    connect();
     const clock = window.setInterval(() => setNow(new Date()), 1000);
     // Promotions change gently on a customer-facing screen rather than
     // competing with guests trying to read the menu or order numbers.
     const promotionCarousel = window.setInterval(() => setPromotionIndex((current) => current + 1), 18000);
     return () => {
-      window.clearInterval(refresh); window.clearInterval(clock); window.clearInterval(promotionCarousel);
+      disposed = true;
+      source?.close();
+      if (reconnectTimer) window.clearTimeout(reconnectTimer);
+      window.clearInterval(clock); window.clearInterval(promotionCarousel);
     };
   }, [displayId]);
 
