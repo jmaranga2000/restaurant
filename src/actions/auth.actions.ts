@@ -6,6 +6,7 @@ import { connectToDatabase } from "@/lib/db";
 import { UserModel } from "@/models/User";
 import { RoleModel } from "@/models/Role";
 import { OrganizationModel } from "@/models/Organization";
+import { BranchModel } from "@/models/Branch";
 import { hashPassword, verifyPassword } from "@/lib/auth";
 import { setSessionCookie, clearSessionCookie, requireOrganizationAccess, setOrganizationAccessCookie } from "@/lib/session";
 import { loginSchema, registerOrganizationSchema, unlockRoleWorkspaceSchema } from "@/validations/auth.schema";
@@ -14,7 +15,7 @@ import { consumeAuthRateLimit, rateLimitMessage, resetAuthRateLimit } from "@/li
 import { DEFAULT_ROLE_TEMPLATES } from "@/types/permissions";
 import type { Permission } from "@/types/permissions";
 import { synchronizeSystemRoles } from "@/services/role.service";
-import { defaultPortalFor } from "@/lib/portal-access";
+import { defaultPortalFor, isOrganizationWideRole } from "@/lib/portal-access";
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: { message: string; code: string } };
 
@@ -93,6 +94,14 @@ export async function unlockRoleWorkspaceAction(input: unknown): Promise<ActionR
     if (!await verifyPassword(parsed.password, user.passwordHash)) throw new AuthenticationError("Incorrect role, email, or password.");
 
     await resetAuthRateLimit(rateLimit.key);
+    if (!isOrganizationWideRole(role.slug) && user.assignedBranchIds.length === 0) {
+      const activeBranches = await BranchModel.find({ organizationId: access.organizationId, isActive: true }).select("_id").limit(2).lean();
+      const onlyBranch = activeBranches[0];
+      if (onlyBranch) {
+        user.assignedBranchIds = [onlyBranch._id];
+        await user.save();
+      }
+    }
     user.lastLoginAt = new Date();
     await user.save();
     await setSessionCookie({

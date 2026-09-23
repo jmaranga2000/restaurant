@@ -1,6 +1,7 @@
 import "server-only";
 import { UserRepository } from "@/repositories/user.repository";
 import { RoleModel } from "@/models/Role";
+import { BranchModel } from "@/models/Branch";
 import { connectToDatabase } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 import { AuditService } from "@/services/audit.service";
@@ -32,8 +33,12 @@ export const UserService = {
     await connectToDatabase();
     const role = await RoleModel.findOne({ _id: input.roleId, organizationId: ctx.organizationId }).lean();
     if (!role) throw new NotFoundError("Role");
-    if (!isOrganizationWideRole(role.slug) && input.assignedBranchIds.length === 0) {
-      throw new BusinessRuleError("Assign each staff member to at least one branch. Only Owners and Restaurant Admins can operate organization-wide.");
+    let assignedBranchIds = input.assignedBranchIds;
+    if (!isOrganizationWideRole(role.slug) && assignedBranchIds.length === 0) {
+      const activeBranches = await BranchModel.find({ organizationId: ctx.organizationId, isActive: true }).select("_id").limit(2).lean();
+      const onlyBranch = activeBranches[0];
+      if (onlyBranch) assignedBranchIds = [String(onlyBranch._id)];
+      else throw new BusinessRuleError("Assign each staff member to at least one branch. Only Owners and Restaurant Admins can operate organization-wide.");
     }
 
     const passwordHash = await hashPassword(input.temporaryPassword);
@@ -43,7 +48,7 @@ export const UserService = {
       email: input.email,
       passwordHash,
       roleId: input.roleId,
-      assignedBranchIds: input.assignedBranchIds,
+      assignedBranchIds,
     });
 
     await AuditService.record({
@@ -52,7 +57,7 @@ export const UserService = {
       action: "user.invited",
       entityType: "User",
       entityId: String(user._id),
-      after: { email: user.email, roleId: input.roleId, assignedBranchIds: input.assignedBranchIds },
+      after: { email: user.email, roleId: input.roleId, assignedBranchIds },
     });
 
     // NOTE: a real build sends the temporary password via EmailService
