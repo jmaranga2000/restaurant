@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth";
 import { verifyPlatformSessionToken, PLATFORM_SESSION_COOKIE_NAME } from "@/lib/platform-auth";
 
-const PUBLIC_PATHS = ["/", "/login", "/register", "/api/health", "/super-admin/login"];
+const PUBLIC_PATHS = ["/", "/login", "/register", "/choose-workspace", "/api/health", "/super-admin/login"];
 // Customer-facing displays are intentionally public — see section 47:
 // "independently launchable" on any TV/tablet without staff login.
 const PUBLIC_PREFIXES = ["/display/", "/api/display/"];
