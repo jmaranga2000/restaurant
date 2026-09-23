@@ -8,7 +8,7 @@ import { RoleModel } from "@/models/Role";
 import { OrganizationModel } from "@/models/Organization";
 import { BranchModel } from "@/models/Branch";
 import { hashPassword, verifyPassword } from "@/lib/auth";
-import { setSessionCookie, clearSessionCookie, requireOrganizationAccess, setOrganizationAccessCookie } from "@/lib/session";
+import { getSession, setSessionCookie, clearSessionCookie, requireOrganizationAccess, setOrganizationAccessCookie } from "@/lib/session";
 import { loginSchema, registerOrganizationSchema, unlockRoleWorkspaceSchema } from "@/validations/auth.schema";
 import { toClientError, AuthenticationError, RateLimitError, ConflictError } from "@/lib/errors";
 import { consumeAuthRateLimit, rateLimitMessage, resetAuthRateLimit } from "@/lib/rate-limit";
@@ -116,6 +116,8 @@ export async function unlockRoleWorkspaceAction(input: unknown): Promise<ActionR
 }
 
 export async function logoutAction(): Promise<void> {
+  const session = await getSession();
+  if (session) await setOrganizationAccessCookie(session.organizationId);
   clearSessionCookie();
   // Keep only the owner-opened restaurant context. The next staff member must
   // still unlock a role with their own credentials before reaching a portal.
