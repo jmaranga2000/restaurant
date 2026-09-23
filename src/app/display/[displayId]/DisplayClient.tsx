@@ -72,6 +72,9 @@ export function DisplayClient({
       };
     };
     connect();
+    // Keep displays current when the deployment does not support long-lived
+    // SSE connections or a realtime provider is unavailable.
+    const fallbackSync = window.setInterval(refreshData, 5000);
     const clock = window.setInterval(() => setNow(new Date()), 1000);
     // Promotions change gently on a customer-facing screen rather than
     // competing with guests trying to read the menu or order numbers.
@@ -80,7 +83,7 @@ export function DisplayClient({
       disposed = true;
       source?.close();
       if (reconnectTimer) window.clearTimeout(reconnectTimer);
-      window.clearInterval(clock); window.clearInterval(promotionCarousel);
+      window.clearInterval(fallbackSync); window.clearInterval(clock); window.clearInterval(promotionCarousel);
     };
   }, [displayId]);
 
