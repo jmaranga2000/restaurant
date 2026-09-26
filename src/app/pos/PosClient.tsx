@@ -241,7 +241,11 @@ export function PosClient({
     const result = await recordPaymentAction({ orderId: activeTicket.id, method: paymentMethod, amountMinor, reference: paymentReference || undefined });
     setBusy(null);
     if (!result.ok) return showError(result.error.message);
-    setActiveTicket((ticket) => ticket ? { ...ticket, payments: [...ticket.payments, { method: paymentMethod, amountMinor, reference: paymentReference || undefined }] } : ticket);
+    if (result.data.balanceMinor === 0) {
+      setActiveTicket(null);
+    } else {
+      setActiveTicket((ticket) => ticket ? { ...ticket, payments: [...ticket.payments, { method: paymentMethod, amountMinor, reference: paymentReference || undefined }] } : ticket);
+    }
     setPaymentAmount(""); setPaymentReference("");
     showSuccess(result.data.balanceMinor > 0 ? `Payment saved. ${money(result.data.balanceMinor, currency)} remains.` : "Order paid in full. You can print the receipt.");
     router.refresh();

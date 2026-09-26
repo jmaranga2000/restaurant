@@ -22,7 +22,12 @@ export default async function RegisterPage() {
     CategoryModel.find({ organizationId: ctx.organizationId, isActive: true }).select("name").lean(),
     ctx.activeBranchId ? TableModel.find({ organizationId: ctx.organizationId, branchId: ctx.activeBranchId }).sort({ label: 1 }).lean() : [],
     CustomerModel.find({ organizationId: ctx.organizationId, isActive: true }).sort({ name: 1 }).limit(100).lean(),
-    ctx.activeBranchId ? OrderModel.find({ organizationId: ctx.organizationId, branchId: ctx.activeBranchId, status: { $in: ["DRAFT", "PLACED", "CONFIRMED", "PREPARING", "READY", "COMPLETED"] } }).sort({ updatedAt: -1 }).limit(30).lean() : [],
+    ctx.activeBranchId ? OrderModel.find({
+      organizationId: ctx.organizationId,
+      branchId: ctx.activeBranchId,
+      status: { $in: ["DRAFT", "PLACED", "CONFIRMED", "PREPARING", "READY"] },
+      $expr: { $lt: [{ $sum: "$payments.amountMinor" }, "$totalMinor"] },
+    }).sort({ updatedAt: -1 }).limit(30).lean() : [],
   ]);
 
   const categoryNames = new Map(categories.map((category) => [String(category._id), category.name]));
