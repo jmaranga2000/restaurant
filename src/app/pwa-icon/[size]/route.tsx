@@ -4,29 +4,32 @@ export const runtime = "edge";
 
 const supportedSizes = new Set([192, 512]);
 
-export async function GET(_: Request, { params }: { params: { size: string } }) {
+export async function GET(request: Request, { params }: { params: { size: string } }) {
   const requestedSize = Number.parseInt(params.size, 10);
   const size = supportedSizes.has(requestedSize) ? requestedSize : 512;
-  const markSize = Math.round(size * 0.5);
+  const logoResponse = await fetch(new URL("/icons/logo5.png", request.url));
+  if (!logoResponse.ok) return new Response("Logo not found", { status: 404 });
+
+  const logoBytes = new Uint8Array(await logoResponse.arrayBuffer());
+  let logoBinary = "";
+  for (let offset = 0; offset < logoBytes.length; offset += 0x8000) {
+    logoBinary += String.fromCharCode(...logoBytes.subarray(offset, offset + 0x8000));
+  }
+  const logoData = `data:image/png;base64,${btoa(logoBinary)}`;
 
   return new ImageResponse(
     (
       <div
         style={{
           alignItems: "center",
-          background: "linear-gradient(135deg, #082C46 0%, #155C88 100%)",
-          color: "#F5FBFF",
+          background: "#F5FBFF",
           display: "flex",
-          fontFamily: "Arial, sans-serif",
-          fontSize: markSize,
-          fontWeight: 700,
           height: "100%",
           justifyContent: "center",
-          letterSpacing: -markSize * 0.08,
           width: "100%",
         }}
       >
-        R
+        <img src={logoData} width={size} height={size} style={{ objectFit: "contain" }} />
       </div>
     ),
     { width: size, height: size }
