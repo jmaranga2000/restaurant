@@ -1,17 +1,18 @@
 import "server-only";
 import { connectToDatabase } from "@/lib/db";
-import { SUBSCRIPTION_PLANS } from "@/lib/subscriptions";
 import { SubscriptionRequestModel } from "@/models/SubscriptionRequest";
 import { requirePermissions, type AuthContext } from "@/permissions/authorize";
 import { PERMISSIONS } from "@/types/permissions";
 import type { CreateSubscriptionRequestInput } from "@/validations/subscription.schema";
 import { AuditService } from "@/services/audit.service";
+import { PlatformPlanService } from "@/services/platform-plan.service";
 
 export const SubscriptionService = {
   async requestPlan(ctx: AuthContext, input: CreateSubscriptionRequestInput) {
     requirePermissions(ctx, PERMISSIONS.RESTAURANT_ADMIN_ACCESS, PERMISSIONS.SETTINGS_MANAGE);
     await connectToDatabase();
-    const monthlyMinor = SUBSCRIPTION_PLANS[input.plan].monthlyMinor;
+    const plans = await PlatformPlanService.getCatalog();
+    const monthlyMinor = plans[input.plan].monthlyMinor;
     const amountMinor = input.billingCycle === "ANNUAL" ? monthlyMinor * 10 : monthlyMinor;
 
     // Only one unresolved checkout request should be visible at a time. The

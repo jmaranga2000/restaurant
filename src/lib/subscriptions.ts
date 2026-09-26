@@ -1,4 +1,4 @@
-export const SUBSCRIPTION_PLANS = {
+export const DEFAULT_SUBSCRIPTION_PLANS = {
   TRIAL: {
     label: "Trial",
     monthlyMinor: 0,
@@ -25,8 +25,16 @@ export const SUBSCRIPTION_PLANS = {
   },
 } as const;
 
-export type SubscriptionPlanCode = keyof typeof SUBSCRIPTION_PLANS;
+export type SubscriptionPlanCode = keyof typeof DEFAULT_SUBSCRIPTION_PLANS;
 export type PaidSubscriptionPlanCode = Exclude<SubscriptionPlanCode, "TRIAL">;
+export type SubscriptionPlanDetails = {
+  label: string;
+  monthlyMinor: number;
+  description: string;
+  features: string[];
+};
+export type SubscriptionPlanCatalog = Record<SubscriptionPlanCode, SubscriptionPlanDetails>;
+export const SUBSCRIPTION_PLAN_CODES = Object.keys(DEFAULT_SUBSCRIPTION_PLANS) as SubscriptionPlanCode[];
 
 export const PAID_SUBSCRIPTION_PLANS: PaidSubscriptionPlanCode[] = ["STARTER", "PROFESSIONAL", "ENTERPRISE"];
 

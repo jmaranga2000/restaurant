@@ -11,6 +11,9 @@ import { PlatformService } from "@/services/platform.service";
 import { toClientError, AuthenticationError, RateLimitError } from "@/lib/errors";
 import { consumeAuthRateLimit, rateLimitMessage, resetAuthRateLimit } from "@/lib/rate-limit";
 import type { ActionResult } from "@/actions/auth.actions";
+import { revalidatePath } from "next/cache";
+import { PlatformPlanService } from "@/services/platform-plan.service";
+import { updatePlatformPlanSchema } from "@/validations/platform-plan.schema";
 
 export async function platformLoginAction(formData: FormData): Promise<ActionResult<{ redirectTo: string }>> {
   try {
@@ -59,5 +62,18 @@ export async function setOrganizationActiveAction(
     return { ok: true, data: { isActive: org.isActive } };
   } catch (err) {
     return { ok: false, error: toClientError(err) };
+  }
+}
+
+export async function updatePlatformPlanAction(input: unknown): Promise<ActionResult<{ code: string }>> {
+  try {
+    await requirePlatformSession();
+    const parsed = updatePlatformPlanSchema.parse(input);
+    await PlatformPlanService.updatePlan(parsed);
+    revalidatePath("/super-admin/plans");
+    revalidatePath("/admin/subscription");
+    return { ok: true, data: { code: parsed.code } };
+  } catch (error) {
+    return { ok: false, error: toClientError(error) };
   }
 }

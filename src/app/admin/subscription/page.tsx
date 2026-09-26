@@ -2,12 +2,13 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { PageHeading } from "@/components/ui/PageHeading";
-import { formatPlanMoney, SUBSCRIPTION_PLANS } from "@/lib/subscriptions";
+import { formatPlanMoney } from "@/lib/subscriptions";
 import { requireSession } from "@/lib/session";
 import { OrganizationModel } from "@/models/Organization";
 import { SubscriptionRequestModel } from "@/models/SubscriptionRequest";
 import { loadAuthContext } from "@/permissions/authorize";
 import { SubscriptionClient } from "./SubscriptionClient";
+import { PlatformPlanService } from "@/services/platform-plan.service";
 
 function formatDate(date?: Date | null) {
   return date ? new Intl.DateTimeFormat("en-KE", { day: "numeric", month: "long", year: "numeric" }).format(date) : "Not set";
@@ -16,13 +17,14 @@ function formatDate(date?: Date | null) {
 export default async function SubscriptionPage() {
   const session = await requireSession();
   const ctx = await loadAuthContext(session);
-  const [organization, pendingRequest] = await Promise.all([
+  const [organization, pendingRequest, plans] = await Promise.all([
     OrganizationModel.findById(ctx.organizationId).select("name email defaultCurrency subscription").lean(),
     SubscriptionRequestModel.findOne({ organizationId: ctx.organizationId, status: "PENDING" }).sort({ createdAt: -1 }).lean(),
+    PlatformPlanService.getCatalog(),
   ]);
   const currentPlan = organization?.subscription?.plan ?? "TRIAL";
   const currentStatus = organization?.subscription?.status ?? "TRIAL";
-  const planDetails = SUBSCRIPTION_PLANS[currentPlan];
+  const planDetails = plans[currentPlan as keyof typeof plans] ?? plans.TRIAL;
   const currency = organization?.defaultCurrency ?? "KES";
 
   return (
@@ -33,7 +35,7 @@ export default async function SubscriptionPage() {
         <Card className="p-5"><p className="text-xs font-semibold uppercase tracking-[.14em] text-indigo-600 dark:text-indigo-300">Billing progress</p>{pendingRequest ? <><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Payment confirmation pending</h2><p className="mt-3 text-sm leading-6 text-ink/60 dark:text-paper/65">{pendingRequest.plan.charAt(0) + pendingRequest.plan.slice(1).toLowerCase()} · {pendingRequest.billingCycle.toLowerCase()} · {formatPlanMoney(pendingRequest.amountMinor, pendingRequest.currency)}</p><p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800 dark:bg-amber-400/10 dark:text-amber-100">Submitting another request replaces this pending request. Your current subscription stays unchanged until payment confirmation.</p></> : <><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">No pending request</h2><p className="mt-3 text-sm leading-6 text-ink/60 dark:text-paper/65">Select a plan below to start the billing process. Plan access changes only after payment confirmation.</p></>}</Card>
       </section>
       <div className="mt-10"><p className="text-xs font-semibold uppercase tracking-[.14em] text-indigo-600 dark:text-indigo-300">Plans</p><h2 className="mt-1 font-display text-2xl text-ink dark:text-paper">Choose the right plan for your restaurant</h2></div>
-      <SubscriptionClient currency={currency} currentPlan={currentPlan} billingEmail={organization?.email ?? undefined} />
+      <SubscriptionClient currency={currency} currentPlan={currentPlan} billingEmail={organization?.email ?? undefined} plans={plans} />
     </div>
   );
 }
