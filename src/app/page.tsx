@@ -53,11 +53,11 @@ export default function HomePage() {
                 Restaurant OS brings orders, kitchen work, inventory, teams, and branch performance into one clear operating rhythm.
               </p>
 
-              <div className="mt-8 flex flex-col gap-3 min-[430px]:flex-row">
-                <Button href="/register" className="bg-ember px-5 py-3.5 text-white hover:bg-ember-dark">
+              <div className="mt-8 flex flex-row gap-2 min-[430px]:gap-3">
+                <Button href="/register" className="min-w-0 flex-1 justify-center bg-ember px-2 py-3.5 text-center text-white hover:bg-ember-dark sm:px-5">
                   Start your restaurant <Arrow />
                 </Button>
-                <Button href="/workspace" variant="secondary" className="border-paper/30 bg-paper/10 px-5 py-3.5 text-ember-dark backdrop-blur hover:border-paper/55 hover:bg-paper/20 dark:border-paper/30 dark:bg-paper/10 dark:text-paper">
+                <Button href="/workspace" variant="secondary" className="min-w-0 flex-1 justify-center border-paper/30 bg-paper/10 px-2 py-3.5 text-center text-ember-dark backdrop-blur hover:border-paper/55 hover:bg-paper/20 dark:border-paper/30 dark:bg-paper/10 dark:text-paper sm:px-5">
                   Open workspace <Arrow />
                 </Button>
               </div>
