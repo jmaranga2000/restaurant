@@ -23,7 +23,7 @@ export function LandingNav() {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 sm:px-10 lg:px-14 lg:py-5">
         <Link href="/" className="flex shrink-0 items-center gap-2 font-display text-xl tracking-tight sm:text-2xl" onClick={closeMenu}>
           <Image src="/icons/logo5.png" width={40} height={40} alt="" className="h-9 w-9 object-contain" priority />
-          <span>Restaurant <span className="text-ember">OS</span></span>
+          
         </Link>
 
         <nav aria-label="Primary navigation" className="hidden items-center gap-7 lg:flex">
