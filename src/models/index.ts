@@ -12,6 +12,7 @@ export * from "./Counter";
 export * from "./Customer";
 export * from "./CashierSession";
 export * from "./LoyaltyTransaction";
+export * from "./LoyaltyReward";
 export * from "./SubscriptionRequest";
 export * from "./Supplier";
 export * from "./PlatformAdmin";

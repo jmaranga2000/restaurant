@@ -2,10 +2,12 @@ import "server-only";
 import { connectToDatabase } from "@/lib/db";
 import { BusinessRuleError, ConflictError, NotFoundError } from "@/lib/errors";
 import { CustomerModel } from "@/models/Customer";
+import { LoyaltyRewardModel } from "@/models/LoyaltyReward";
 import { LoyaltyTransactionModel } from "@/models/LoyaltyTransaction";
 import { requireBranchAccess, requirePermissions, type AuthContext } from "@/permissions/authorize";
 import { PERMISSIONS } from "@/types/permissions";
 import type { ChangeLoyaltyPointsInput, CreateLoyaltyCustomerInput } from "@/validations/loyalty.schema";
+import type { SaveLoyaltyRewardInput, SetLoyaltyRewardActiveInput } from "@/validations/loyalty-reward.schema";
 import { AuditService } from "@/services/audit.service";
 
 function requireCashierBranch(ctx: AuthContext) {
@@ -16,6 +18,49 @@ function requireCashierBranch(ctx: AuthContext) {
 }
 
 export const LoyaltyService = {
+  async createReward(ctx: AuthContext, input: SaveLoyaltyRewardInput) {
+    requirePermissions(ctx, PERMISSIONS.MANAGER_WORKSPACE_ACCESS, PERMISSIONS.ORDERS_VIEW);
+    await connectToDatabase();
+    const reward = await LoyaltyRewardModel.create({
+      organizationId: ctx.organizationId,
+      name: input.name,
+      description: input.description || undefined,
+      pointsRequired: input.pointsRequired,
+      isActive: true,
+      createdBy: ctx.userId,
+    });
+    await AuditService.record({
+      organizationId: ctx.organizationId,
+      actorId: ctx.userId,
+      action: "loyalty.reward_created",
+      entityType: "LoyaltyReward",
+      entityId: String(reward._id),
+      after: { name: reward.name, pointsRequired: reward.pointsRequired, isActive: reward.isActive },
+    });
+    return reward;
+  },
+
+  async setRewardActive(ctx: AuthContext, input: SetLoyaltyRewardActiveInput) {
+    requirePermissions(ctx, PERMISSIONS.MANAGER_WORKSPACE_ACCESS, PERMISSIONS.ORDERS_VIEW);
+    await connectToDatabase();
+    const reward = await LoyaltyRewardModel.findOne({ _id: input.rewardId, organizationId: ctx.organizationId });
+    if (!reward) throw new NotFoundError("Loyalty reward");
+    const wasActive = reward.isActive;
+    reward.isActive = input.isActive;
+    reward.updatedBy = ctx.userId as unknown as typeof reward.updatedBy;
+    await reward.save();
+    await AuditService.record({
+      organizationId: ctx.organizationId,
+      actorId: ctx.userId,
+      action: input.isActive ? "loyalty.reward_activated" : "loyalty.reward_deactivated",
+      entityType: "LoyaltyReward",
+      entityId: String(reward._id),
+      before: { isActive: wasActive },
+      after: { name: reward.name, isActive: reward.isActive },
+    });
+    return reward;
+  },
+
   async enroll(ctx: AuthContext, input: CreateLoyaltyCustomerInput) {
     const branchId = requireCashierBranch(ctx);
     await connectToDatabase();

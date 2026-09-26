@@ -9,7 +9,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 const navigation = [
   { label: "Overview", items: [{ href: "/super-admin/dashboard", label: "Dashboard" }] },
   { label: "Platform", items: [{ href: "/super-admin/organizations", label: "Organizations" }, { href: "/super-admin/branches", label: "Branches" }, { href: "/super-admin/users", label: "Users" }, { href: "/super-admin/users", label: "Roles & permissions" }] },
-  { label: "Billing", items: [{ href: "/super-admin/subscriptions", label: "Subscriptions" }, { href: "/super-admin/subscriptions", label: "Plans" }, { href: "/super-admin/subscriptions", label: "Payments" }, { href: "/super-admin/subscriptions", label: "Revenue" }] },
+  { label: "Billing", items: [{ href: "/super-admin/subscriptions", label: "Subscriptions" }, { href: "/super-admin/plans", label: "Plans" }, { href: "/super-admin/payments", label: "Payments" }, { href: "/super-admin/revenue", label: "Revenue" }] },
   { label: "Operations", items: [{ href: "/super-admin/organizations", label: "Orders" }, { href: "/super-admin/organizations", label: "Kitchens" }, { href: "/super-admin/organizations", label: "Displays" }, { href: "/super-admin/organizations", label: "Signage" }] },
   { label: "System", items: [{ href: "/super-admin/dashboard", label: "Analytics" }, { href: "/super-admin/dashboard", label: "Jobs" }, { href: "/super-admin/dashboard", label: "Integrations" }, { href: "/super-admin/dashboard", label: "Audit logs" }, { href: "/super-admin/dashboard", label: "System health" }] },
   { label: "Settings", items: [{ href: "/super-admin/settings", label: "Organization settings" }] },

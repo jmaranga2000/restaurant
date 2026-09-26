@@ -30,6 +30,13 @@ type LoyaltyActivity = {
   createdAt: string;
 };
 
+type LoyaltyReward = {
+  id: string;
+  name: string;
+  description?: string;
+  pointsRequired: number;
+};
+
 function tierFor(points: number) {
   if (points >= 1_000) return { label: "Gold", tone: "warning" as const };
   if (points >= 500) return { label: "Silver", tone: "info" as const };
@@ -40,7 +47,7 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat("en-KE", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 }
 
-export function LoyaltyClient({ members, activity }: { members: LoyaltyMember[]; activity: LoyaltyActivity[] }) {
+export function LoyaltyClient({ members, activity, rewards }: { members: LoyaltyMember[]; activity: LoyaltyActivity[]; rewards: LoyaltyReward[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState("");
@@ -53,7 +60,6 @@ export function LoyaltyClient({ members, activity }: { members: LoyaltyMember[];
     return members.filter((member) => [member.name, member.phone, member.email].filter(Boolean).some((value) => value!.toLowerCase().includes(query)));
   }, [members, search]);
   const totalPoints = members.reduce((total, member) => total + member.points, 0);
-  const redeemableMembers = members.filter((member) => member.points >= 500).length;
 
   function enrollMember(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -97,7 +103,12 @@ export function LoyaltyClient({ members, activity }: { members: LoyaltyMember[];
       <section className="mt-6 grid gap-3 sm:grid-cols-3">
         <MetricCard label="Loyalty members" value={String(members.length)} icon="◎" hint="Active customer profiles" />
         <MetricCard label="Points in circulation" value={totalPoints.toLocaleString()} icon="✦" hint="Across all listed members" />
-        <MetricCard label="Rewards available" value={String(redeemableMembers)} icon="✓" hint="Members with 500+ points" />
+        <MetricCard label="Reward offers" value={String(rewards.length)} icon="✓" hint="Active manager-defined rewards" />
+      </section>
+
+      <section className="mt-6">
+        <div className="mb-3"><p className="text-xs font-semibold uppercase tracking-[.14em] text-indigo-600 dark:text-indigo-300">Active catalog</p><h2 className="mt-1 font-display text-xl text-ink dark:text-paper">Rewards available</h2></div>
+        {rewards.length ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{rewards.map((reward) => <Card key={reward.id} className="flex min-h-36 flex-col p-4"><div className="flex items-start justify-between gap-3"><h3 className="font-display text-lg text-ink dark:text-paper">{reward.name}</h3><Badge tone="warning">{reward.pointsRequired.toLocaleString()} pts</Badge></div><p className="mt-2 text-sm leading-6 text-ink/60 dark:text-paper/60">{reward.description || "Ask the manager for reward details."}</p></Card>)}</div> : <Card className="p-5 text-sm text-ink/55 dark:text-paper/60">No rewards are active. Ask a manager to add rewards to the loyalty catalog.</Card>}
       </section>
 
       <section className="mt-6 grid gap-4 xl:grid-cols-5">
