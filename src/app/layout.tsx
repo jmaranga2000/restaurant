@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   applicationName: "Restaurant OS",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/icons/restaurant-os.svg",
-    apple: "/icons/restaurant-os.svg",
+    icon: "/icons/logo5.png",
+    apple: "/icons/logo5.png",
   },
   appleWebApp: {
     capable: true,
