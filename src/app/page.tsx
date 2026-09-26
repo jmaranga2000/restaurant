@@ -43,9 +43,6 @@ export default function HomePage() {
           <div className="absolute inset-0 -z-10 bg-gradient-to-br from-ink/95 via-ink/78 to-ink/40" />
           <div className="mx-auto grid min-h-[calc(100svh-7.25rem)] max-w-7xl gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[1.02fr_.98fr] lg:items-center lg:gap-14 lg:px-14 lg:py-24">
             <div>
-              <Badge tone="warning" className="border border-ember-light/30 bg-ember/15 text-ember-light">
-                <span className="h-1.5 w-1.5 rounded-full bg-ember-light" /> Restaurant operating system
-              </Badge>
               <h1 className="mt-6 max-w-3xl font-display text-5xl leading-[0.93] tracking-[-0.055em] sm:text-6xl lg:text-7xl xl:text-[5.4rem]">
                 One calm system for <span className="text-ember-light">every busy shift.</span>
               </h1>
